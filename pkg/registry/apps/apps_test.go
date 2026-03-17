@@ -60,6 +60,7 @@ func TestProvideAppInstallers_Table(t *testing.T) {
 				notificationsAppInstaller,
 				nil,
 				annotationAppInstaller,
+				nil, // history
 				exampleAppInstaller,
 				advisorAppInstaller,
 				historianAppInstaller,

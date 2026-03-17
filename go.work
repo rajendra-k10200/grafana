@@ -17,6 +17,7 @@ use (
 	./apps/dashvalidator
 	./apps/example
 	./apps/folder
+	./apps/history
 	./apps/iam
 	./apps/logsdrilldown
 	./apps/playlist

@@ -163,6 +163,10 @@ const (
 	// Adds support for Kubernetes unified storage quotas
 	FlagKubernetesUnifiedStorageQuotas = "kubernetesUnifiedStorageQuotas"
 
+	// FlagKubernetesHistory
+	// Adds support for Kubernetes query history
+	FlagKubernetesHistory = "kubernetesHistory"
+
 	// FlagKubernetesLogsDrilldown
 	// Adds support for Kubernetes logs drilldown
 	FlagKubernetesLogsDrilldown = "kubernetesLogsDrilldown"

@@ -95,6 +95,7 @@
 /apps/secret/ @grafana/grafana-operator-experience-squad
 /apps/scope/ @grafana/grafana-operator-experience-squad
 /apps/advisor/ @grafana/plugins-platform-backend
+/apps/history/ @grafana/grafana-app-platform-squad
 /apps/iam/ @grafana/access-squad
 /apps/sdk.mk @grafana/grafana-app-platform-squad
 /apps/correlations @grafana/datapro

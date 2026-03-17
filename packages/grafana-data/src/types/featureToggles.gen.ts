@@ -274,6 +274,11 @@ export interface FeatureToggles {
   */
   kubernetesUnifiedStorageQuotas?: boolean;
   /**
+  * Adds support for Kubernetes query history
+  * @default false
+  */
+  kubernetesHistory?: boolean;
+  /**
   * Adds support for Kubernetes logs drilldown
   * @default false
   */

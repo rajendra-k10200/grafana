@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/grafana/pkg/registry/apps/correlations"
 	"github.com/grafana/grafana/pkg/registry/apps/dashvalidator"
 	"github.com/grafana/grafana/pkg/registry/apps/example"
+	"github.com/grafana/grafana/pkg/registry/apps/history"
 	"github.com/grafana/grafana/pkg/registry/apps/live"
 	"github.com/grafana/grafana/pkg/registry/apps/logsdrilldown"
 	"github.com/grafana/grafana/pkg/registry/apps/playlist"
@@ -45,6 +46,7 @@ func ProvideAppInstallers(
 	alertingNotificationAppInstaller *notifications.AppInstaller,
 	logsdrilldownAppInstaller *logsdrilldown.LogsDrilldownAppInstaller,
 	annotationAppInstaller *annotation.AppInstaller,
+	historyAppInstaller *history.AppInstaller,
 	exampleAppInstaller *example.AppInstaller,
 	advisorAppInstaller *advisor.AppInstaller,
 	alertingHistorianAppInstaller *historian.AppInstaller,
@@ -56,6 +58,7 @@ func ProvideAppInstallers(
 		playlistAppInstaller,
 		pluginsAppInstaller,
 		exampleAppInstaller,
+		historyAppInstaller,
 	}
 	if featureClient.Boolean(context.Background(), featuremgmt.FlagKubernetesUnifiedStorageQuotas, false, openfeature.TransactionContext(context.Background())) {
 		installers = append(installers, quotasAppInstaller)

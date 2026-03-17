@@ -415,6 +415,13 @@ var (
 			Expression:      "false",
 		},
 		{
+			Name:        "kubernetesHistory",
+			Description: "Adds support for Kubernetes query history",
+			Stage:       FeatureStageExperimental,
+			Owner:       grafanaAppPlatformSquad,
+			Expression:  "false",
+		},
+		{
 			Name:            "kubernetesLogsDrilldown",
 			Description:     "Adds support for Kubernetes logs drilldown",
 			Stage:           FeatureStageExperimental,
