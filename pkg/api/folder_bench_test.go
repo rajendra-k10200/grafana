@@ -42,6 +42,7 @@ import (
 	"github.com/grafana/grafana/pkg/services/folder/folderimpl"
 	"github.com/grafana/grafana/pkg/services/licensing/licensingtest"
 	"github.com/grafana/grafana/pkg/services/org/orgimpl"
+	"github.com/grafana/grafana/pkg/services/publicdashboards"
 	"github.com/grafana/grafana/pkg/services/quota/quotatest"
 	"github.com/grafana/grafana/pkg/services/search"
 	"github.com/grafana/grafana/pkg/services/search/sort"
@@ -415,10 +416,21 @@ func setupServer(b testing.TB, sc benchScenario, features featuremgmt.FeatureTog
 	ac := acimpl.ProvideAccessControl(featuremgmt.WithFeatures())
 	cfg := setting.NewCfg()
 	actionSets := resourcepermissions.NewActionSetService()
-	fStore := folderimpl.ProvideStore(sc.db, cfg)
 	folderServiceWithFlagOn := folderimpl.ProvideService(
-		fStore, ac, bus.ProvideBus(tracing.InitializeTracerForTest()), dashStore,
-		nil, sc.db, features, supportbundlestest.NewFakeBundleService(), nil, cfg, nil, tracing.InitializeTracerForTest(), nil, dualwrite.ProvideTestService(), sort.ProvideService(), apiserver.WithoutRestConfig)
+		ac,
+		bus.ProvideBus(tracing.InitializeTracerForTest()),
+		sc.userSvc,
+		features,
+		supportbundlestest.NewFakeBundleService(),
+		&publicdashboards.FakePublicDashboardServiceWrapper{},
+		cfg,
+		nil,
+		tracing.InitializeTracerForTest(),
+		nil,
+		dualwrite.ProvideTestService(),
+		sort.ProvideService(),
+		apiserver.WithoutRestConfig,
+	)
 	acSvc := acimpl.ProvideOSSService(
 		sc.cfg, acdb.ProvideService(sc.db), actionSets, localcache.ProvideService(),
 		features, tracing.InitializeTracerForTest(), sc.db, permreg.ProvidePermissionRegistry(), nil,
