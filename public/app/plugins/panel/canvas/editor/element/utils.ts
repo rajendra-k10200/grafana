@@ -53,15 +53,17 @@ export const getRequest = (api: APIEditorConfig) => {
   };
 
   if (api.headerParams) {
-    api.headerParams.forEach(([name, value]) => {
+    for (const [name, value] of api.headerParams) {
       requestHeaders[interpolateVariables(name)] = interpolateVariables(value);
-    });
+    }
   }
 
   if (api.queryParams) {
-    api.queryParams?.forEach(([name, value]) => {
-      url.searchParams.append(interpolateVariables(name), interpolateVariables(value));
-    });
+    if (api.queryParams) {
+      for (const [name, value] of api.queryParams) {
+        url.searchParams.append(interpolateVariables(name), interpolateVariables(value));
+      }
+    }
 
     request.url = url.toString();
   }
@@ -88,7 +90,6 @@ const getData = (api: APIEditorConfig) => {
 const getEndpoint = (endpoint: string) => {
   const isRelativeUrl = endpoint.startsWith('/');
   if (isRelativeUrl) {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const sanitizedRelativeURL = textUtil.sanitizeUrl(endpoint) as RelativeUrl;
     endpoint = createAbsoluteUrl(sanitizedRelativeURL, []);
   }

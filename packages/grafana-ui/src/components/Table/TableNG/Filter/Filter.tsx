@@ -26,7 +26,7 @@ interface Props {
   parentIndex?: number;
 }
 
-export const Filter = memo(({ name, rows, filter, setFilter, field, iconClassName, parentIndex }: Props) => {
+export const Filter = memo(({ name, rows, filter, setFilter, field, iconClassName = '', parentIndex }: Props) => {
   const filterKey = typeof parentIndex === 'number' ? `${name}-${parentIndex}` : name;
   const filterValue = filter[filterKey]?.filtered;
 

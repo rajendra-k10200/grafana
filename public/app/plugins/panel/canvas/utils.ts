@@ -114,7 +114,8 @@ export function getConnections(sceneByName: Map<string, ElementState>) {
   const connections: ConnectionState[] = [];
   for (let v of sceneByName.values()) {
     if (v.options.connections) {
-      v.options.connections.forEach((c, index) => {
+      for (let index = 0; index < v.options.connections.length; index++) {
+        const c = v.options.connections[index];
         // @TODO Remove after v10.x
         if (isString(c.color)) {
           c.color = { fixed: c.color };
@@ -136,7 +137,7 @@ export function getConnections(sceneByName: Map<string, ElementState>) {
             targetOriginal: c.targetOriginal ?? undefined,
           });
         }
-      });
+      }
     }
   }
 
@@ -149,11 +150,11 @@ export function getConnectionsByTarget(element: ElementState, scene: Scene) {
 
 export function updateConnectionsForSource(element: ElementState, scene: Scene) {
   const targetConnections = getConnectionsByTarget(element, scene);
-  targetConnections.forEach((connection) => {
+  for (const connection of targetConnections) {
     const sourceConnections = connection.source.options.connections?.splice(0) ?? [];
     const connections = sourceConnections.filter((con) => con.targetName !== element.getName());
     connection.source.onChange({ ...connection.source.options, connections });
-  });
+  }
 
   // Update scene connection state to clear out old connections
   scene.connections.updateState();
@@ -377,8 +378,8 @@ export function getElementFields(frames: DataFrame[], opts: CanvasElementOptions
   const fields = new Set<Field>();
   const cfg = opts.config ?? {};
 
-  frames.forEach((frame) => {
-    frame.fields.forEach((field) => {
+  for (const frame of frames) {
+    for (const field of frame.fields) {
       const name = getFieldDisplayName(field, frame, frames);
 
       // (intentional fall-through)
@@ -401,8 +402,8 @@ export function getElementFields(frames: DataFrame[], opts: CanvasElementOptions
         case cfg.rpm?.field:
           fields.add(field);
       }
-    });
-  });
+    }
+  }
 
   return [...fields];
 }
@@ -414,7 +415,7 @@ export function applyStyles(styles: React.CSSProperties, target: HTMLDivElement)
 
 export function removeStyles(styles: React.CSSProperties, target: HTMLDivElement) {
   for (const key in styles) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     target.style[key as any] = '';
   }
 }

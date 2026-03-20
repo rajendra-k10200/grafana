@@ -158,6 +158,7 @@ export {
   getFieldDisplayName,
   getFrameDisplayName,
   cacheFieldDisplayNames,
+  cacheFieldOrigins,
   getUniqueFieldName,
 } from './field/fieldState';
 export { getScaleCalculator, getFieldConfigWithMinMax, getMinMaxAndDelta } from './field/scale';

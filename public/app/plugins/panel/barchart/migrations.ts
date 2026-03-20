@@ -1,4 +1,4 @@
-import { FieldMatcherID, PanelTypeChangedHandler, ReducerID } from '@grafana/data';
+import { FieldMatcherID, isReducerID, PanelTypeChangedHandler, ReducerID } from '@grafana/data';
 import { AxisPlacement } from '@grafana/ui';
 
 /*
@@ -53,26 +53,28 @@ export const changeToBarChartPanelMigrationHandler: PanelTypeChangedHandler = (p
 };
 
 // same as grafana-ui/src/components/SingleStatShared/SingleStatBaseOptions.ts
-const getReducer = (reducers: string[] | undefined) => {
-  const transformReducers: string[] = [];
+function getReducer(reducers: string[] | undefined): ReducerID[] {
+  const transformReducers: ReducerID[] = [];
+  if (!reducers) {
+    return [ReducerID.sum];
+  }
 
-  reducers?.forEach((reducer) => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    if (!Object.values(ReducerID).includes(reducer as ReducerID)) {
-      if (reducer === 'current') {
-        transformReducers.push(ReducerID.lastNotNull);
-      } else if (reducer === 'total') {
-        transformReducers.push(ReducerID.sum);
-      } else if (reducer === 'avg') {
-        transformReducers.push(ReducerID.mean);
-      }
-    } else {
+  for (const reducer of reducers) {
+    if (isReducerID(reducer)) {
       transformReducers.push(reducer);
+    } else if (reducer === 'current') {
+      transformReducers.push(ReducerID.lastNotNull);
+    } else if (reducer === 'total') {
+      transformReducers.push(ReducerID.sum);
+    } else if (reducer === 'avg') {
+      transformReducers.push(ReducerID.mean);
+    } else {
+      console.warn(`Unknown reducer ${reducer} found during migration, ignoring`);
     }
-  });
+  }
 
-  return reducers ? transformReducers : [ReducerID.sum];
-};
+  return transformReducers;
+}
 
 interface GraphOptions {
   xaxis: {

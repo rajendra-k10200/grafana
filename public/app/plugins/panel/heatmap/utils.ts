@@ -102,13 +102,13 @@ export function prepConfig(opts: PrepConfigOpts) {
   let builder = new UPlotConfigBuilder(timeZone);
 
   builder.addHook('init', (u) => {
-    u.root.querySelectorAll<HTMLElement>('.u-cursor-pt').forEach((el) => {
+    for (const el of u.root.querySelectorAll<HTMLElement>('.u-cursor-pt')) {
       Object.assign(el.style, {
         borderRadius: '0',
         border: '1px solid white',
         background: 'transparent',
       });
-    });
+    }
   });
 
   if (isTime) {
@@ -136,12 +136,13 @@ export function prepConfig(opts: PrepConfigOpts) {
     qt.clear();
 
     // force-clear the path cache to cause drawBars() to rebuild new quadtree
-    u.series.forEach((s, i) => {
+    for (let i = 0; i < u.series.length; i++) {
+      const s = u.series[i];
       if (i > 0) {
         // @ts-ignore
         s._paths = null;
       }
-    });
+    }
   });
 
   builder.setMode(2);
@@ -685,10 +686,11 @@ export function heatmapPathsDense(opts: PathbuilderOpts) {
         //	u.ctx.globalAlpha = 0.8;
         u.ctx.rect(u.bbox.left, u.bbox.top, u.bbox.width, u.bbox.height);
         u.ctx.clip();
-        fillPaths.forEach((p, i) => {
+        for (let i = 0; i < fillPaths.length; i++) {
+          const p = fillPaths[i];
           u.ctx.fillStyle = fillPalette[i];
           u.ctx.fill(p);
-        });
+        }
         u.ctx.restore();
 
         return null;
@@ -755,10 +757,11 @@ export function heatmapPathsPoints(opts: PointsBuilderOpts, exemplarColor: strin
         u.ctx.save();
         u.ctx.rect(u.bbox.left, u.bbox.top, u.bbox.width, u.bbox.height);
         u.ctx.clip();
-        fillPaths.forEach((p, i) => {
+        for (let i = 0; i < fillPaths.length; i++) {
+          const p = fillPaths[i];
           u.ctx.fillStyle = fillPalette[i];
           u.ctx.fill(p);
-        });
+        }
         u.ctx.restore();
       }
     );
@@ -873,10 +876,11 @@ export function heatmapPathsSparse(opts: PathbuilderOpts) {
         //	u.ctx.globalAlpha = 0.8;
         u.ctx.rect(u.bbox.left, u.bbox.top, u.bbox.width, u.bbox.height);
         u.ctx.clip();
-        fillPaths.forEach((p, i) => {
+        for (let i = 0; i < fillPaths.length; i++) {
+          const p = fillPaths[i];
           u.ctx.fillStyle = fillPalette[i];
           u.ctx.fill(p);
-        });
+        }
         u.ctx.restore();
 
         //console.timeEnd('heatmapPathsSparse');

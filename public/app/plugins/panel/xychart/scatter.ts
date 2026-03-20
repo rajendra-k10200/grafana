@@ -287,12 +287,13 @@ export const prepConfig = (xySeries: XYSeries[], theme: GrafanaTheme2) => {
     qt.clear();
 
     // force-clear the path cache to cause drawBars() to rebuild new quadtree
-    u.series.forEach((s, i) => {
+    for (let i = 0; i < u.series.length; i++) {
+      const s = u.series[i];
       if (i > 0) {
         // @ts-ignore
         s._paths = null;
       }
-    });
+    }
   });
 
   builder.setMode(2);
@@ -352,7 +353,7 @@ export const prepConfig = (xySeries: XYSeries[], theme: GrafanaTheme2) => {
     formatValue: xIsTime ? undefined : (v, decimals) => formattedValueToString(xField.display!(v, decimals)),
   });
 
-  xySeries.forEach((s, si) => {
+  for (const s of xySeries.values()) {
     let field = s.y.field;
 
     const lineColor = s.color.fixed;
@@ -429,7 +430,7 @@ export const prepConfig = (xySeries: XYSeries[], theme: GrafanaTheme2) => {
       fillColor: colorManipulator.alpha(pointColor ?? '#ffff', 0.5),
       show: !field.state?.hideFrom?.viz,
     });
-  });
+  }
 
   const dispColors = xySeries.map((s): FieldColorValuesWithCache => {
     const cfg: FieldColorValuesWithCache = {
@@ -458,9 +459,10 @@ export const prepConfig = (xySeries: XYSeries[], theme: GrafanaTheme2) => {
 
     const { size: sizeRange, color: colorRange } = getGlobalRanges(xySeries);
 
-    xySeries.forEach((s, i) => {
+    for (let i = 0; i < xySeries.length; i++) {
+      const s = xySeries[i];
       dispColors[i].values = dispColors[i].getAll(s.color.field?.values ?? [], colorRange.min, colorRange.max);
-    });
+    }
 
     return [
       null,
@@ -523,8 +525,10 @@ const getGlobalRanges = (xySeries: XYSeries[]) => {
     },
   };
 
-  xySeries.forEach((series) => {
-    [series.size, series.color].forEach((facet, fi) => {
+  for (const series of xySeries) {
+    const facets = [series.size, series.color];
+    for (let fi = 0; fi < facets.length; fi++) {
+      const facet = facets[fi];
       if (facet.field != null) {
         let range = fi === 0 ? ranges.size : ranges.color;
 
@@ -544,8 +548,8 @@ const getGlobalRanges = (xySeries: XYSeries[]) => {
           }
         }
       }
-    });
-  });
+    }
+  }
 
   return ranges;
 };

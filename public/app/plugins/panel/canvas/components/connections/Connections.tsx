@@ -153,7 +153,8 @@ export class Connections {
 
     // re-calculate the position of the existing anchors on hover
     // and hide the rest of the anchors if there are more than the custom ones
-    anchors.forEach((anchor, index) => {
+    for (let index = 0; index < anchors.length; index++) {
+      const anchor = anchors[index];
       if (index >= anchorsAmount) {
         anchor.style.display = 'none';
       } else {
@@ -162,7 +163,7 @@ export class Connections {
         anchor.style.left = `calc(${x * 50 + 50}% - ${HALF_SIZE}px - ${ANCHOR_PADDING}px)`;
         anchor.style.display = 'block';
       }
-    });
+    }
 
     const elementBoundingRect = element.div!.getBoundingClientRect();
     const transformScale = this.scene.scale;
