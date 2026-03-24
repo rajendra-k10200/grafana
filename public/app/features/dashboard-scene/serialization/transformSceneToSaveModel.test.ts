@@ -346,6 +346,8 @@ describe('transformSceneToSaveModel', () => {
         meta: {},
       });
 
+      activateFullSceneTree(scene);
+
       const variable = scene.state.$variables?.state.variables[0] as MultiValueVariable;
       variable.changeValueTo(['a', 'b', 'c']);
 

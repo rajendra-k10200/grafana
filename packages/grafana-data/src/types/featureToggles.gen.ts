@@ -1701,6 +1701,11 @@ export interface FeatureToggles {
   */
   analyticsFramework?: boolean;
   /**
+  * Prevents flickering in scenes
+  * @default false
+  */
+  scenesNoFlickering?: boolean;
+  /**
   * Send Datsource health requests to /apis/ API routes instead of the legacy /api/datasources/uid/{uid}/health route.
   * @default false
   */

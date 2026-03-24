@@ -910,6 +910,10 @@ const (
 	// Enables new analytics framework
 	FlagAnalyticsFramework = "analyticsFramework"
 
+	// FlagScenesNoFlickering
+	// Prevents flickering in scenes
+	FlagScenesNoFlickering = "scenesNoFlickering"
+
 	// FlagAdvisorDatasourceIntegration
 	// Enables the advisor report integration with datasource pages
 	FlagAdvisorDatasourceIntegration = "advisorDatasourceIntegration"
