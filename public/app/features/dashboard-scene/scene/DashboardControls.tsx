@@ -340,7 +340,7 @@ function getStyles(theme: GrafanaTheme2, isQueryEditorNext: boolean) {
     // Original controls style
     controls: css({
       gap: theme.spacing(1),
-      padding: theme.spacing(2, 2, 1, 2),
+      padding: theme.spacing(2, 1, 1, 2),
       flexDirection: 'row',
       flexWrap: 'nowrap',
       position: 'relative',
@@ -368,7 +368,6 @@ function getStyles(theme: GrafanaTheme2, isQueryEditorNext: boolean) {
     topRow: css({
       display: 'flex',
       alignItems: 'flex-start',
-      gap: theme.spacing(1),
       width: '100%',
       marginBottom: theme.spacing(1),
       [theme.breakpoints.down('sm')]: {
@@ -401,7 +400,6 @@ function getStyles(theme: GrafanaTheme2, isQueryEditorNext: boolean) {
     // Modified rightControls for new layout
     rightControlsNewLayout: css({
       display: 'flex',
-      gap: theme.spacing(1),
       alignItems: 'flex-start',
       flexWrap: 'wrap',
       flexShrink: 0,
