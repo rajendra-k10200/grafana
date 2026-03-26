@@ -1,6 +1,3 @@
-import { config } from '@grafana/runtime';
-
-import { SQLSearcher } from './sql';
 import { GrafanaSearcher } from './types';
 import { UnifiedSearcher } from './unified';
 
@@ -8,10 +5,7 @@ let searcher: GrafanaSearcher | undefined = undefined;
 
 export function getGrafanaSearcher(): GrafanaSearcher {
   if (!searcher) {
-    const sqlSearcher = new SQLSearcher();
-    const useUnifiedStorageSearch =
-      config.featureToggles.unifiedStorageSearchUI || config.featureToggles.panelTitleSearch;
-    searcher = useUnifiedStorageSearch ? new UnifiedSearcher(sqlSearcher) : sqlSearcher;
+    searcher = new UnifiedSearcher();
   }
   return searcher!;
 }
