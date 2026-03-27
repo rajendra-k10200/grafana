@@ -5,6 +5,7 @@ import {
   DataHoverClearEvent,
   DataHoverEvent,
   FALLBACK_COLOR,
+  FieldColorModeId,
   type FieldDisplay,
   formattedValueToString,
   getFieldDisplayValues,
@@ -21,7 +22,7 @@ import {
   type VizLegendItem,
 } from '@grafana/ui';
 
-import { PieChart } from './PieChart';
+import { PieChart, computeGradientFills } from './PieChart';
 import { type PieChartLegendOptions, PieChartLegendValues, type Options } from './panelcfg.gen';
 import { filterDisplayItems, sumDisplayItemsReducer } from './utils';
 
@@ -56,8 +57,27 @@ export function PieChartPanel(props: Props) {
     return <PanelDataErrorView panelId={id} fieldConfig={fieldConfig} data={data} />;
   }
 
+  // Compute gradient fills once here so both the chart and the legend share
+  // the exact same color map (same rank order, same interpolated hex values).
+  //
+  // Items that have a field-level color override are excluded from the gradient
+  // computation so their override color is preserved. After getFieldDisplayValues
+  // applies per-field overrides, an overridden series has field.color.mode set to
+  // the override value (e.g. 'fixed') — different from the panel-level 'gradient'
+  // mode — which is how we detect them here. (FieldDisplay.field is FieldConfig.)
+  const gradientFills =
+    fieldConfig.defaults.color?.mode === FieldColorModeId.Gradient
+      ? computeGradientFills(
+          fieldDisplayValues
+            .filter(filterDisplayItems)
+            .filter((item) => !item.field.color || item.field.color.mode === FieldColorModeId.Gradient),
+          theme.visualization.getColorByName(fieldConfig.defaults.color.fixedColor ?? '#73BF69'),
+          theme.visualization.getColorByName(fieldConfig.defaults.color.gradientColorTo ?? '#F2495C')
+        )
+      : undefined;
+
   return (
-    <VizLayout width={width} height={height} legend={getLegend(props, fieldDisplayValues)}>
+    <VizLayout width={width} height={height} legend={getLegend(props, fieldDisplayValues, gradientFills)}>
       {(vizWidth: number, vizHeight: number) => {
         return (
           <PieChart
@@ -69,6 +89,7 @@ export function PieChartPanel(props: Props) {
             pieType={options.pieType}
             sort={options.sort}
             displayLabels={options.displayLabels}
+            gradientFills={gradientFills}
           />
         );
       }}
@@ -76,7 +97,7 @@ export function PieChartPanel(props: Props) {
   );
 }
 
-function getLegend(props: Props, displayValues: FieldDisplay[]) {
+function getLegend(props: Props, displayValues: FieldDisplay[], gradientFills?: Map<string, string>) {
   const legendOptions = props.options.legend ?? defaultLegendOptions;
 
   if (legendOptions.showLegend === false) {
@@ -100,7 +121,7 @@ function getLegend(props: Props, displayValues: FieldDisplay[]) {
       const display = value.display;
       return {
         label: display.title ?? '',
-        color: display.color ?? FALLBACK_COLOR,
+        color: gradientFills?.get(display.title ?? '') ?? display.color ?? FALLBACK_COLOR,
         yAxis: 1,
         disabled: hideFromViz,
         getItemKey: () => (display.title ?? '') + idx,
