@@ -19,6 +19,7 @@ import {
   GraphDrawStyle,
   GraphFieldConfig,
   GraphThresholdsStyleMode,
+  LineStyle,
   VisibilityMode,
   ScaleDirection,
   ScaleOrientation,
@@ -29,6 +30,25 @@ import {
   VizOrientation,
   ScaleDistributionConfig,
 } from '@grafana/schema';
+
+/**
+ * Distinct line patterns cycled per series when using the colorblind-safe palette.
+ * Provides a second visual channel (pattern) on top of color.
+ */
+const COLORBLIND_LINE_STYLES: LineStyle[] = [
+  { fill: 'solid' },
+  { fill: 'dash', dash: [10, 10] },
+  { fill: 'dot', dash: [0, 10] },
+  { fill: 'dash', dash: [20, 10] },
+  { fill: 'dash', dash: [30, 3, 3] },
+  { fill: 'dot', dash: [0, 20] },
+  { fill: 'dash', dash: [10, 20] },
+  { fill: 'dash', dash: [5, 10] },
+];
+
+function getAutoLineStyleForColorblind(seriesIndex: number): LineStyle {
+  return COLORBLIND_LINE_STYLES[seriesIndex % COLORBLIND_LINE_STYLES.length];
+}
 
 // unit lookup needed to determine if we want power-of-2 or power-of-10 axis ticks
 // see categories.ts is @grafana/data
@@ -248,6 +268,7 @@ export const preparePlotConfigBuilder: UPlotConfigPrepFn = ({
     renderers?.flatMap((r) => Object.values(r.fieldMap).filter((name) => r.indicesOnly.indexOf(name) === -1)) ?? [];
 
   let indexByName: Map<string, number> | undefined;
+  let seriesIdx = 0;
 
   for (let i = 1; i < frame.fields.length; i++) {
     const field = frame.fields[i];
@@ -562,7 +583,10 @@ export const preparePlotConfigBuilder: UPlotConfigPrepFn = ({
       lineColor: customConfig.lineColor ?? seriesColor,
       lineWidth: customConfig.lineWidth,
       lineInterpolation: customConfig.lineInterpolation,
-      lineStyle: customConfig.lineStyle,
+      lineStyle:
+        colorMode.id === FieldColorModeId.PaletteColorblind && !customConfig.lineStyle?.fill
+          ? getAutoLineStyleForColorblind(seriesIdx)
+          : customConfig.lineStyle,
       barAlignment: customConfig.barAlignment,
       barWidthFactor: customConfig.barWidthFactor,
       barMaxWidth: customConfig.barMaxWidth,
@@ -579,6 +603,8 @@ export const preparePlotConfigBuilder: UPlotConfigPrepFn = ({
       dataFrameFieldIndex: field.state?.origin,
       showValues: customConfig.showValues,
     });
+
+    seriesIdx++;
 
     // Render thresholds in graph
     if (customConfig.thresholdsStyle && config.thresholds) {

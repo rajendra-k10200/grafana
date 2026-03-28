@@ -1,4 +1,4 @@
-import { createDataFrame, dateTime, DateTimeInput, EventBus, FieldType } from '@grafana/data';
+import { createDataFrame, dateTime, DateTimeInput, EventBus, FieldColorModeId, FieldType } from '@grafana/data';
 import { getTheme } from '@grafana/ui';
 
 import { getXAxisConfig, preparePlotConfigBuilder, UPLOT_DEFAULT_AXIS_GAP } from './utils';
@@ -396,5 +396,96 @@ describe('calculateAnnotationLaneSizes', () => {
         size: 26,
       },
     });
+  });
+});
+
+describe('colorblind palette auto line styles', () => {
+  const eventBus: EventBus = {
+    publish: jest.fn(),
+    getStream: jest.fn() as EventBus['getStream'],
+    subscribe: jest.fn(),
+    removeAllListeners: jest.fn(),
+    newScopedBus: jest.fn(),
+  };
+
+  function buildWithColorMode(colorModeId: string, fieldCount: number, explicitLineStyle?: object) {
+    const fields: Array<Record<string, unknown>> = [
+      {
+        config: {},
+        values: [1000, 2000, 3000],
+        name: 'Time',
+        state: { multipleFrames: false, displayName: 'Time', origin: { fieldIndex: 0, frameIndex: 0 } },
+        type: FieldType.time,
+      },
+    ];
+
+    for (let i = 0; i < fieldCount; i++) {
+      fields.push({
+        config: {
+          color: { mode: colorModeId },
+          custom: explicitLineStyle ? { lineStyle: explicitLineStyle } : {},
+        },
+        values: [i + 1, i + 2, i + 3],
+        name: `Series${i}`,
+        state: {
+          multipleFrames: false,
+          displayName: `Series${i}`,
+          origin: { fieldIndex: i + 1, frameIndex: 0 },
+        },
+        type: FieldType.number,
+      });
+    }
+
+    const frame = createDataFrame({ fields });
+
+    return preparePlotConfigBuilder({
+      frame,
+      // @ts-ignore
+      theme: getTheme(),
+      timeZones: ['browser'],
+      getTimeRange: jest.fn(),
+      eventBus,
+      sync: jest.fn(),
+      allFrames: [frame],
+      renderers: [],
+    });
+  }
+
+  it('should auto-assign different line styles when colorblind palette is active', () => {
+    const builder = buildWithColorMode(FieldColorModeId.PaletteColorblind, 3);
+    const series = builder.getSeries();
+
+    // First series should be solid
+    expect(series[0].props.lineStyle).toEqual({ fill: 'solid' });
+    // Second should be dash
+    expect(series[1].props.lineStyle).toEqual({ fill: 'dash', dash: [10, 10] });
+    // Third should be dot
+    expect(series[2].props.lineStyle).toEqual({ fill: 'dot', dash: [0, 10] });
+  });
+
+  it('should cycle patterns when there are more series than patterns', () => {
+    const builder = buildWithColorMode(FieldColorModeId.PaletteColorblind, 9);
+    const series = builder.getSeries();
+
+    // 9th series (index 8) should wrap back to solid (8 % 8 = 0)
+    expect(series[8].props.lineStyle).toEqual({ fill: 'solid' });
+  });
+
+  it('should not auto-assign line styles for non-colorblind palettes', () => {
+    const builder = buildWithColorMode(FieldColorModeId.PaletteClassic, 3);
+    const series = builder.getSeries();
+
+    // lineStyle should be undefined (not set) for classic palette
+    expect(series[0].props.lineStyle).toBeUndefined();
+  });
+
+  it('should respect explicit lineStyle override even with colorblind palette', () => {
+    const explicitStyle = { fill: 'dash', dash: [50, 50] };
+    const builder = buildWithColorMode(FieldColorModeId.PaletteColorblind, 2, explicitStyle);
+    const series = builder.getSeries();
+
+    // Explicit override should be kept
+    expect(series[0].props.lineStyle).toEqual(explicitStyle);
+    expect(series[1].props.lineStyle).toEqual(explicitStyle);
   });
 });
