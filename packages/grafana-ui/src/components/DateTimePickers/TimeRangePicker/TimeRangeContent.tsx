@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { FormEvent, useCallback, useEffect, useId, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useId, useRef, useState } from 'react';
 import * as React from 'react';
 
 import {
@@ -19,6 +19,7 @@ import { t, Trans } from '@grafana/i18n';
 import { useStyles2 } from '../../../themes/ThemeContext';
 import { Button } from '../../Button/Button';
 import { Field } from '../../Forms/Field';
+import { FieldValidationMessage } from '../../Forms/FieldValidationMessage';
 import { Icon } from '../../Icon/Icon';
 import { Input } from '../../Input/Input';
 import { Tooltip } from '../../Tooltip/Tooltip';
@@ -43,13 +44,40 @@ interface Props {
 interface InputState {
   value: string;
   invalid: boolean;
-  errorMessage: string;
+  errorMessage: React.ReactNode;
+  errorDescription: string;
 }
 
+const DOCS_LINK = 'https://grafana.com/docs/grafana/latest/dashboards/time-range-controls';
+
 const ERROR_MESSAGES = {
-  default: () => t('time-picker.range-content.default-error', 'Please enter a past date or "{{now}}"', { now: 'now' }),
-  range: () => t('time-picker.range-content.range-error', '"From" can\'t be after "To"'),
+  from: () =>
+    t(
+      'time-picker.range-content.from-error',
+      'Enter a date (YYYY-MM-DD HH:mm:ss) or relative time (e.g. now, now-1h) in the From field.'
+    ),
+  to: () =>
+    t(
+      'time-picker.range-content.to-error',
+      'Enter a date (YYYY-MM-DD HH:mm:ss) or relative time (e.g. now, now-1h) in the To field.'
+    ),
+  range: () => t('time-picker.range-content.range-error', '"From" date must be before "To"'),
 };
+
+function fieldErrorMessage(type: 'from' | 'to' | 'range'): React.ReactNode {
+  const desc = ERROR_MESSAGES[type]();
+  if (type === 'range') {
+    return desc;
+  }
+  return (
+    <>
+      {desc}{' '}
+      <a href={DOCS_LINK} target="_blank" rel="noreferrer">
+        {t('time-picker.range-content.error-see-docs', 'See time range syntax')}
+      </a>
+    </>
+  );
+}
 
 export const TimeRangeContent = (props: Props) => {
   const {
@@ -69,8 +97,15 @@ export const TimeRangeContent = (props: Props) => {
   const [to, setTo] = useState<InputState>(toValue);
   const [isOpen, setOpen] = useState(false);
 
+  const fromInputRef = useRef<HTMLInputElement>(null);
+  const toInputRef = useRef<HTMLInputElement>(null);
+  const fromErrorRef = useRef<HTMLDivElement>(null);
+  const toErrorRef = useRef<HTMLDivElement>(null);
+
   const fromFieldId = useId();
   const toFieldId = useId();
+  const fromErrorId = `${fromFieldId}-error`;
+  const toErrorId = `${toFieldId}-error`;
 
   // Synchronize internal state with external value
   useEffect(() => {
@@ -89,6 +124,17 @@ export const TimeRangeContent = (props: Props) => {
 
   const onApply = useCallback(() => {
     if (to.invalid || from.invalid) {
+      if (fromErrorRef.current) {
+        fromErrorRef.current.textContent = from.invalid ? from.errorDescription : '';
+      }
+      if (toErrorRef.current) {
+        toErrorRef.current.textContent = to.invalid ? to.errorDescription : '';
+      }
+      if (from.invalid) {
+        fromInputRef.current?.focus();
+      } else {
+        toInputRef.current?.focus();
+      }
       return;
     }
 
@@ -96,7 +142,17 @@ export const TimeRangeContent = (props: Props) => {
     const timeRange = rangeUtil.convertRawToRange(raw, timeZone, fiscalYearStartMonth, commonFormat);
 
     onApplyFromProps(timeRange);
-  }, [from.invalid, from.value, onApplyFromProps, timeZone, to.invalid, to.value, fiscalYearStartMonth]);
+  }, [
+    from.errorDescription,
+    from.invalid,
+    from.value,
+    onApplyFromProps,
+    timeZone,
+    to.errorDescription,
+    to.invalid,
+    to.value,
+    fiscalYearStartMonth,
+  ]);
 
   const onChange = useCallback(
     (from: DateTime | string, to: DateTime | string) => {
@@ -168,35 +224,70 @@ export const TimeRangeContent = (props: Props) => {
   return (
     <div>
       <div className={style.fieldContainer}>
-        <Field
-          label={t('time-picker.range-content.from-input', 'From')}
-          invalid={from.invalid}
-          error={from.errorMessage}
-        >
-          <Input
-            id={fromFieldId}
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => onChange(event.currentTarget.value, to.value)}
-            addonAfter={icon}
-            onKeyDown={submitOnEnter}
-            data-testid={selectors.components.TimePicker.fromField}
-            value={from.value}
-          />
-        </Field>
+        {/* Field does not receive `error` — role="alert" inside Field interrupts speech on every
+            keystroke. FieldValidationMessage is rendered aria-hidden (visual only); errors are
+            announced via aria-describedby targets updated imperatively on blur/submit. */}
+        <div className={style.fieldWrapper}>
+          <Field
+            label={t('time-picker.range-content.from-input', 'From')}
+            invalid={from.invalid}
+            noMargin={from.invalid}
+          >
+            <Input
+              id={fromFieldId}
+              ref={fromInputRef}
+              aria-invalid={from.invalid || undefined}
+              aria-describedby={fromErrorId}
+              onClick={(event) => event.stopPropagation()}
+              onChange={(event) => onChange(event.currentTarget.value, to.value)}
+              onBlur={() => {
+                if (fromErrorRef.current) {
+                  fromErrorRef.current.textContent = from.invalid ? from.errorDescription : '';
+                }
+              }}
+              addonAfter={icon}
+              onKeyDown={submitOnEnter}
+              data-testid={selectors.components.TimePicker.fromField}
+              value={from.value}
+            />
+          </Field>
+          {from.invalid && (
+            <div aria-hidden="true" className={style.fieldValidationWrapper}>
+              <FieldValidationMessage>{from.errorMessage}</FieldValidationMessage>
+            </div>
+          )}
+          <div id={fromErrorId} ref={fromErrorRef} className={style.srOnly} />
+        </div>
         {fyTooltip}
       </div>
       <div className={style.fieldContainer}>
-        <Field label={t('time-picker.range-content.to-input', 'To')} invalid={to.invalid} error={to.errorMessage}>
-          <Input
-            id={toFieldId}
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => onChange(from.value, event.currentTarget.value)}
-            addonAfter={icon}
-            onKeyDown={submitOnEnter}
-            data-testid={selectors.components.TimePicker.toField}
-            value={to.value}
-          />
-        </Field>
+        <div className={style.fieldWrapper}>
+          <Field label={t('time-picker.range-content.to-input', 'To')} invalid={to.invalid} noMargin={to.invalid}>
+            <Input
+              id={toFieldId}
+              ref={toInputRef}
+              aria-invalid={to.invalid || undefined}
+              aria-describedby={toErrorId}
+              onClick={(event) => event.stopPropagation()}
+              onChange={(event) => onChange(from.value, event.currentTarget.value)}
+              onBlur={() => {
+                if (toErrorRef.current) {
+                  toErrorRef.current.textContent = to.invalid ? to.errorDescription : '';
+                }
+              }}
+              addonAfter={icon}
+              onKeyDown={submitOnEnter}
+              data-testid={selectors.components.TimePicker.toField}
+              value={to.value}
+            />
+          </Field>
+          {to.invalid && (
+            <div aria-hidden="true" className={style.fieldValidationWrapper}>
+              <FieldValidationMessage>{to.errorMessage}</FieldValidationMessage>
+            </div>
+          )}
+          <div id={toErrorId} ref={toErrorRef} className={style.srOnly} />
+        </div>
         {fyTooltip}
       </div>
       <div className={style.buttonsContainer}>
@@ -257,13 +348,20 @@ function valueToState(
   // If "To" is invalid, we should not check the range anyways
   const rangeInvalid = isRangeInvalid(fromValue, toValue, timeZone) && !toInvalid;
 
+  const fromErrorType = rangeInvalid && !fromInvalid ? 'range' : 'from';
   return [
     {
       value: fromValue,
       invalid: fromInvalid || rangeInvalid,
-      errorMessage: rangeInvalid && !fromInvalid ? ERROR_MESSAGES.range() : ERROR_MESSAGES.default(),
+      errorMessage: fieldErrorMessage(fromErrorType),
+      errorDescription: ERROR_MESSAGES[fromErrorType](),
     },
-    { value: toValue, invalid: toInvalid, errorMessage: ERROR_MESSAGES.default() },
+    {
+      value: toValue,
+      invalid: toInvalid,
+      errorMessage: fieldErrorMessage('to'),
+      errorDescription: ERROR_MESSAGES.to(),
+    },
   ];
 }
 
@@ -285,6 +383,13 @@ function getStyles(theme: GrafanaTheme2) {
     fieldContainer: css({
       display: 'flex',
     }),
+    fieldWrapper: css({
+      flex: 1,
+    }),
+    fieldValidationWrapper: css({
+      marginTop: theme.spacing(0.5),
+      marginBottom: theme.spacing(2),
+    }),
     buttonsContainer: css({
       display: 'flex',
       gap: theme.spacing(0.5),
@@ -293,6 +398,17 @@ function getStyles(theme: GrafanaTheme2) {
     tooltip: css({
       paddingLeft: theme.spacing(1),
       paddingTop: theme.spacing(3),
+    }),
+    srOnly: css({
+      position: 'absolute',
+      width: '1px',
+      height: '1px',
+      padding: 0,
+      margin: '-1px',
+      overflow: 'hidden',
+      clip: 'rect(0, 0, 0, 0)',
+      whiteSpace: 'nowrap',
+      border: 0,
     }),
   };
 }
