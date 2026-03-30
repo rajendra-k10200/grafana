@@ -31,7 +31,7 @@ import {
 
 interface VariableEditorFormProps {
   variable: SceneVariable;
-  onTypeChange: (type: EditableVariableType) => void;
+  onTypeChange?: (type: EditableVariableType) => void;
   onGoBack: () => void;
   onDelete: (variableName: string) => void;
 }
@@ -46,7 +46,7 @@ export function VariableEditorForm({ variable, onTypeChange, onGoBack, onDelete 
   }, [variable]);
   const onVariableTypeChange = (option: SelectableValue<EditableVariableType>) => {
     if (option.value) {
-      onTypeChange(option.value);
+      onTypeChange?.(option.value);
     }
   };
 
@@ -88,7 +88,7 @@ export function VariableEditorForm({ variable, onTypeChange, onGoBack, onDelete 
     <form
       aria-label={t('dashboard-scene.variable-editor-form.aria-label-variable-editor-form', 'Variable editor form')}
     >
-      <VariableTypeSelect onChange={onVariableTypeChange} type={type} />
+      {onTypeChange && <VariableTypeSelect onChange={onVariableTypeChange} type={type} />}
 
       <VariableLegend>
         <Trans i18nKey="dashboard-scene.variable-editor-form.general">General</Trans>
