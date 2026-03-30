@@ -99,6 +99,19 @@ export const versionedComponents = {
   LayoutContainer: {
     '12.4.0': (identifier: string) => `data-testid Layout container ${identifier}`,
   },
+  VizLayout: {
+    container: {
+      [MIN_GRAFANA_VERSION]: 'data-testid viz-layout',
+    },
+    legend: {
+      [MIN_GRAFANA_VERSION]: 'data-testid viz-layout-legend',
+    },
+  },
+  UPlotChart: {
+    container: {
+      [MIN_GRAFANA_VERSION]: 'uplot-main-div',
+    },
+  },
   TimePicker: {
     moveBackwardButton: {
       '12.4.0': 'data-testid explore-toolbar-timepicker-move-backward-button',
@@ -506,6 +519,14 @@ export const versionedComponents = {
       BarGauge: {
         valueV2: {
           [MIN_GRAFANA_VERSION]: 'data-testid Bar gauge value',
+        },
+      },
+      Histogram: {
+        container: {
+          ['13.0.0']: 'data-testid viz-layout',
+        },
+        legend: {
+          ['13.0.0']: 'data-testid viz-layout-legend',
         },
       },
       PieChart: {
