@@ -12,6 +12,7 @@ import tinycolor from 'tinycolor2';
 import { t } from '@grafana/i18n';
 
 import { getContrastRatio } from '../themes/colorManipulator';
+import { getColorblindPalette } from '../themes/createVisualizationColors';
 import { GrafanaTheme2 } from '../themes/types';
 import { reduceField } from '../transformations/fieldReducer';
 import { Field } from '../types/dataFrame';
@@ -87,6 +88,16 @@ export const fieldColorModeRegistry = new Registry<FieldColorMode>(() => {
             theme.colors.contrastThreshold
         );
       },
+    }),
+    new FieldColorSchemeMode({
+      id: FieldColorModeId.PaletteColorblind,
+      name: 'Colorblind safe',
+      isContinuous: false,
+      isByValue: false,
+      getColors: () => {
+        return getColorblindPalette();
+      },
+      group: accessibleGroup,
     }),
     new FieldColorSchemeMode({
       id: FieldColorModeId.ContinuousViridis,
