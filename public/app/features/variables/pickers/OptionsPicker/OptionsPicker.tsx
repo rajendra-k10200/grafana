@@ -8,7 +8,6 @@ import { selectors } from '@grafana/e2e-selectors';
 import { ClickOutsideWrapper } from '@grafana/ui';
 import { StoreState, ThunkDispatch } from 'app/types/store';
 
-import { VARIABLE_PREFIX } from '../../constants';
 import { isMulti } from '../../guard';
 import { getVariableQueryRunner } from '../../query/VariableQueryRunner';
 import { formatVariableLabel } from '../../shared/formatVariable';
@@ -23,6 +22,7 @@ import { NavigationKey, VariablePickerProps } from '../types';
 
 import { commitChangesToVariable, filterOrSearchOptions, navigateOptions, openOptions } from './actions';
 import { initialOptionPickerState, OptionsPickerState, toggleAllOptions, toggleOption } from './reducer';
+import { VARIABLE_PREFIX } from '../../constants';
 
 export const optionPickerFactory = <Model extends VariableWithOptions | VariableWithMultiSupport>(): ComponentType<
   VariablePickerProps<Model>
