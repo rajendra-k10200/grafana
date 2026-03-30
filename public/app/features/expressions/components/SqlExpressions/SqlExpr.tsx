@@ -13,6 +13,7 @@ import { Button, Stack, useStyles2 } from '@grafana/ui';
 
 import { ExpressionQueryEditorProps } from '../../ExpressionQueryEditor';
 import { SqlExpressionQuery } from '../../types';
+import { quoteIdentifierIfNecessary } from '../../../../plugins/datasource/mysql/sqlUtil';
 import { fetchSQLFields } from '../../utils/metaSqlExpr';
 import { QueryToolbox } from '../QueryToolbox';
 
@@ -73,10 +74,12 @@ export const SqlExpr = ({ onChange, refIds, query, alerting = false, queries, me
     formatter: formatSQL,
   };
 
+  // Quote the first refId in case it contains spaces or special characters
+  // (e.g. "gdp per capita") that would otherwise produce invalid SQL.
   const initialQuery = `SELECT
   *
 FROM
-  ${vars[0]}
+  ${quoteIdentifierIfNecessary(vars[0])}
 LIMIT
   10`;
 
