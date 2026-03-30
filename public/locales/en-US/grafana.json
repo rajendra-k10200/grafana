@@ -8358,6 +8358,7 @@
     "explore": {
       "title-flame-graph": "Flame graph",
       "title-graph": "Graph",
+      "title-heatmap": "Heatmap",
       "title-logs": "Logs",
       "title-logs-sample": "Logs sample",
       "title-node-graph": "Node graph",
@@ -8414,6 +8415,9 @@
     },
     "get-matches-metadata": {
       "matches": "0 matches"
+    },
+    "heatmap": {
+      "view-span-profile": "View span profile"
     },
     "legacy-create-span-link-factory": {
       "text": {
@@ -10517,6 +10521,9 @@
     "category-legend": "Legend",
     "category-tooltip": "Tooltip",
     "category-y-axis": "Y Axis",
+    "container": {
+      "title": "Heatmap"
+    },
     "error": {
       "no-y-fields": "No numeric fields found for heatmap"
     },
