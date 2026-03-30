@@ -1,13 +1,15 @@
 import { useState } from 'react';
 
 import { Trans, t } from '@grafana/i18n';
-import { LinkButton, Stack, Tooltip } from '@grafana/ui';
+import { Button, LinkButton, Stack, Tooltip } from '@grafana/ui';
 
 import { ROUTES_META_SYMBOL, Route } from '../../../../../../plugins/datasource/alertmanager/types';
 import { AlertmanagerAction, useAlertmanagerAbilities } from '../../../hooks/useAbilities';
-import { ROOT_ROUTE_NAME } from '../../../utils/k8s/constants';
+import { ROOT_ROUTE_NAME, ROUTES_RESOURCE_TYPE } from '../../../utils/k8s/constants';
+import { canAdminEntity } from '../../../utils/k8s/utils';
 import { createRelativeUrl } from '../../../utils/url';
 import ConditionalWrap from '../../ConditionalWrap';
+import { ManagePermissions } from '../../permissions/ManagePermissions';
 import { trackNotificationPolicyExported } from '../notificationPolicyAnalytics';
 import { useExportRoutingTree } from '../useExportRoutingTree';
 import { isRouteProvisioned, useDeleteRoutingTree } from '../useNotificationPolicyRoute';
@@ -38,7 +40,26 @@ export const ActionButtons = ({ route }: ActionButtonsProps) => {
   const provisioned = isRouteProvisioned(route);
   const canEdit = updatePoliciesSupported && updatePoliciesAllowed && !provisioned;
 
+  const routeMeta = route[ROUTES_META_SYMBOL];
+  const showManagePermissions = canAdminEntity({ metadata: routeMeta?.metadata });
+
   const actions: JSX.Element[] = [];
+
+  if (showManagePermissions) {
+    actions.push(
+      <ManagePermissions
+        key="manage-permissions"
+        resource={ROUTES_RESOURCE_TYPE}
+        resourceId={routeMeta?.name ?? ''}
+        resourceName={route.name}
+        renderButton={({ onClick }) => (
+          <Button icon="unlock" variant="secondary" size="sm" data-testid="manage-permissions-action" onClick={onClick}>
+            <Trans i18nKey="alerting.manage-permissions.button">Manage permissions</Trans>
+          </Button>
+        )}
+      />
+    );
+  }
   actions.push(
     <LinkButton
       key="view-routing-tree"
