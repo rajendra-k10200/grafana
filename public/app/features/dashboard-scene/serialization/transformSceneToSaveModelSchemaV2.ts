@@ -29,7 +29,7 @@ import {
   PanelQueryKind,
   TransformationKind,
   FieldConfigSource,
-  DataTransformerConfig,
+  TransformationSpec,
   PanelQuerySpec,
   DataQueryKind,
   QueryOptionsSpec,
@@ -53,6 +53,7 @@ import {
   defaultTimeSettingsSpec,
   defaultDashboardLinkType,
   defaultDashboardLink,
+  Preferences,
 } from '../../../../../packages/grafana-schema/src/schema/dashboard/v2';
 import { DashboardDataLayerSet } from '../scene/DashboardDataLayerSet';
 import { DashboardScene, DashboardSceneState } from '../scene/DashboardScene';
@@ -66,7 +67,6 @@ import { DSReferencesMapping } from './DashboardSceneSerializer';
 import { transformV1ToV2AnnotationQuery } from './annotations';
 import { sceneVariablesSetToSchemaV2Variables } from './sceneVariablesSetToVariables';
 import { colorIdEnumToColorIdV2, transformCursorSynctoEnum } from './transformToV2TypesUtils';
-
 // FIXME: This is temporary to avoid creating partial types for all the new schema, it has some performance implications, but it's fine for now
 type DeepPartial<T> = T extends object
   ? {
@@ -90,9 +90,22 @@ export function transformSceneToSaveModelSchemaV2(scene: DashboardScene, isSnaps
 
   const timeSettingsDefaults = defaultTimeSettingsSpec();
 
+  let preferences: Preferences | undefined = undefined;
+
+  if (config.featureToggles.dashboardDefaultLayoutSelector && sceneDash.preferences?.defaultLayoutTemplate) {
+    const template = sceneDash.preferences.defaultLayoutTemplate;
+    const serialized = template.serialize();
+    if (serialized.kind === 'AutoGridLayout' || serialized.kind === 'GridLayout') {
+      preferences = {
+        layout: serialized,
+      };
+    }
+  }
+
   const dashboardSchemaV2: DeepPartial<DashboardV2Spec> = {
     //dashboard settings
     title: sceneDash.title,
+    preferences,
     description: sceneDash.description || undefined,
     cursorSync: getCursorSync(sceneDash),
     liveNow: getLiveNow(sceneDash),
@@ -497,9 +510,7 @@ function getVizPanelTransformations(vizPanel: VizPanel): TransformationKind[] {
       const transformation = transformationItem;
 
       if ('id' in transformation) {
-        // Transformation is a DataTransformerConfig
-        const transformationSpec: DataTransformerConfig = {
-          id: transformation.id,
+        const transformationSpec: TransformationSpec = {
           disabled: transformation.disabled,
           filter: transformation.filter,
           ...(transformation.topic && { topic: transformation.topic }),
@@ -507,7 +518,8 @@ function getVizPanelTransformations(vizPanel: VizPanel): TransformationKind[] {
         };
 
         transformations.push({
-          kind: transformation.id,
+          kind: 'Transformation',
+          group: transformation.id,
           spec: transformationSpec,
         });
       } else {

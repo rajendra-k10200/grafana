@@ -36,6 +36,7 @@ import { ScrollRefElement } from 'app/core/components/NativeScrollbar';
 import { LS_PANEL_COPY_KEY, LS_STYLES_COPY_KEY } from 'app/core/constants';
 import { getNavModel } from 'app/core/selectors/navModel';
 import { sortedDeepCloneWithoutNulls } from 'app/core/utils/object';
+import { dashboardAPIVersionResolver } from 'app/features/dashboard/api/DashboardAPIVersionResolver';
 import { getDashboardAPI } from 'app/features/dashboard/api/dashboard_api';
 import { DashboardWithAccessInfo } from 'app/features/dashboard/api/types';
 import { isDashboardV2Spec } from 'app/features/dashboard/api/utils';
@@ -78,6 +79,7 @@ import { getElement } from '../serialization/layoutSerializers/utils';
 import { transformSaveModelSchemaV2ToScene } from '../serialization/transformSaveModelSchemaV2ToScene';
 import { buildGridItemForPanel, transformSaveModelToScene } from '../serialization/transformSaveModelToScene';
 import { gridItemToPanel } from '../serialization/transformSceneToSaveModel';
+import { normalizeTransformation } from '../serialization/transformationCompat';
 import { JsonModelEditView } from '../settings/JsonModelEditView';
 import { DashboardEditView } from '../settings/utils';
 import { DashboardModelCompatibilityWrapper } from '../utils/DashboardModelCompatibilityWrapper';
@@ -124,9 +126,16 @@ type CopiedPanelStyles = {
   styles: PanelStyles;
 };
 
+export interface DashboardScenePreferences {
+  defaultLayoutTemplate?: DashboardLayoutManager;
+}
+
 export interface DashboardSceneState extends SceneObjectState {
   /** @deprecated */
   id?: number | undefined;
+
+  /** Dashboard-specific preferences **/
+  preferences?: DashboardScenePreferences;
 
   /** The title */
   title: string;
@@ -226,11 +235,13 @@ export class DashboardScene extends SceneObjectBase<DashboardSceneState> impleme
       meta: {},
       editable: true,
       $timeRange: state.$timeRange ?? new SceneTimeRange({}),
-      body: state.body ?? DefaultGridLayoutManager.fromVizPanels([]),
+      body:
+        state.body ?? state.preferences?.defaultLayoutTemplate?.clone() ?? DefaultGridLayoutManager.fromVizPanels([]),
       links: state.links ?? [],
       ...state,
       editPane: new DashboardEditPane(),
       layoutOrchestrator: new DashboardLayoutOrchestrator(),
+      preferences: state.preferences ?? {},
     });
 
     this.serializer =
@@ -1062,11 +1073,8 @@ export class DashboardScene extends SceneObjectBase<DashboardSceneState> impleme
         const transformations = dataSpec.transformations;
         if (Array.isArray(transformations)) {
           for (const transformation of transformations) {
-            // V2 transformations have a 'kind' field which is the transformation id
-            const transformId = transformation?.kind || transformation?.spec?.id;
-            if (typeof transformId === 'string' && transformId) {
-              transformationCounts.set(transformId, (transformationCounts.get(transformId) || 0) + 1);
-            }
+            const normalized = normalizeTransformation(transformation);
+            transformationCounts.set(normalized.group, (transformationCounts.get(normalized.group) || 0) + 1);
           }
         }
       }
@@ -1172,7 +1180,10 @@ export class DashboardScene extends SceneObjectBase<DashboardSceneState> impleme
   // Helper method to build K8s resource structure
   private buildResourceForCreate(spec: Dashboard | DashboardV2Spec, isNew: boolean): ResourceForCreate<unknown> {
     const { meta } = this.state;
-    const apiVersion = this.serializer instanceof V2DashboardSerializer ? 'v2beta1' : 'v1beta1';
+    const apiVersion =
+      this.serializer instanceof V2DashboardSerializer
+        ? dashboardAPIVersionResolver.getV2()
+        : dashboardAPIVersionResolver.getV1();
     return {
       apiVersion: `dashboard.grafana.app/${apiVersion}`,
       kind: 'Dashboard',
@@ -1251,6 +1262,30 @@ export class DashboardScene extends SceneObjectBase<DashboardSceneState> impleme
 
   private hasVariableErrors(): boolean {
     return Boolean(this.state.$variables?.state.variables.find((v) => Boolean(v.state.error)));
+  }
+
+  /**
+   * Default layout used for new Tab and Row containers
+   * Undefined if default layout is not set in preferences
+   */
+  getDefaultLayout() {
+    if (this.state.preferences?.defaultLayoutTemplate) {
+      return this.state.preferences.defaultLayoutTemplate.clone();
+    }
+    return undefined;
+  }
+
+  getDefaultLayoutType() {
+    return this.state.preferences?.defaultLayoutTemplate?.descriptor?.id;
+  }
+
+  updateDefaultLayoutTemplate(template: DashboardLayoutManager) {
+    this.setState({
+      preferences: {
+        ...this.state.preferences,
+        defaultLayoutTemplate: template.clone(),
+      },
+    });
   }
 }
 
