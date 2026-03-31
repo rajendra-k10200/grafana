@@ -198,12 +198,12 @@ jobs:
           verify: ${{ matrix.verify }}
           build-id: ${{ github.run_id }}
           cache-builders: true
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: artifacts-list-${{ matrix.name }}
           path: ${{ steps.build.outputs.file }}
           retention-days: 1
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: artifacts-${{ matrix.name }}
           path: ${{ steps.build.outputs.dist-dir }}
