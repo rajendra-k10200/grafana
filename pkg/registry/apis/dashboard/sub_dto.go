@@ -191,10 +191,50 @@ func (r *DTOConnector) Connect(ctx context.Context, name string, opts runtime.Ob
 
 		access.CanStar = user.IsIdentityType(authlib.TypeUser)
 
-		// Annotation permissions - use write permission as proxy
-		access.AnnotationsPermissions = &dashboard.AnnotationPermission{
-			Dashboard: dashboard.AnnotationActions{CanAdd: writeRes.Allowed, CanEdit: writeRes.Allowed, CanDelete: writeRes.Allowed},
+		// Annotation permissions - check using annotations subresource with standard K8s verbs
+		dashboardAnnotationActions := dashboard.AnnotationActions{}
+
+		// Check dashboard annotation permissions using "annotations" subresource
+		annotateCreateRes, err := r.accessClient.Check(ctx, authInfo, authlib.CheckRequest{
+			Verb:        utils.VerbCreate,
+			Group:       gvr.Group,
+			Resource:    gvr.Resource,
+			Subresource: "annotations",
+			Namespace:   ns,
+			Name:        name,
+		}, folder)
+		if err != nil {
+			logger.Warn("Failed to check annotation create permission", "err", err)
 		}
+		dashboardAnnotationActions.CanAdd = annotateCreateRes.Allowed
+
+		annotateUpdateRes, err := r.accessClient.Check(ctx, authInfo, authlib.CheckRequest{
+			Verb:        utils.VerbUpdate,
+			Group:       gvr.Group,
+			Resource:    gvr.Resource,
+			Subresource: "annotations",
+			Namespace:   ns,
+			Name:        name,
+		}, folder)
+		if err != nil {
+			logger.Warn("Failed to check annotation update permission", "err", err)
+		}
+		dashboardAnnotationActions.CanEdit = annotateUpdateRes.Allowed
+
+		annotateDeleteRes, err := r.accessClient.Check(ctx, authInfo, authlib.CheckRequest{
+			Verb:        utils.VerbDelete,
+			Group:       gvr.Group,
+			Resource:    gvr.Resource,
+			Subresource: "annotations",
+			Namespace:   ns,
+			Name:        name,
+		}, folder)
+		if err != nil {
+			logger.Warn("Failed to check annotation delete permission", "err", err)
+		}
+		dashboardAnnotationActions.CanDelete = annotateDeleteRes.Allowed
+
+		access.AnnotationsPermissions = &dashboard.AnnotationPermission{Dashboard: dashboardAnnotationActions}
 
 		title := obj.FindTitle("")
 		access.Slug = slugify.Slugify(title)
