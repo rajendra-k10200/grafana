@@ -45,6 +45,12 @@ interface PieChartProps {
   displayLabels?: PieChartLabels[];
   useGradients?: boolean; // not used?
   tooltipOptions: VizTooltipOptions;
+  /**
+   * Pre-computed gradient fills keyed by series title.
+   * When provided, slices (and legend items) use these colors instead of the
+   * per-series palette. Computed once in PieChartPanel and shared here.
+   */
+  gradientFills?: Map<string, string>;
 }
 
 export const PieChart = ({
@@ -56,6 +62,7 @@ export const PieChart = ({
   highlightedTitle,
   displayLabels = [],
   tooltipOptions,
+  gradientFills,
 }: PieChartProps) => {
   const theme = useTheme2();
   const componentInstanceId = useComponentInstanceId('PieChart');
@@ -83,6 +90,9 @@ export const PieChart = ({
       filteredFieldDisplayValues.map((fieldDisplayValue) => fieldDisplayValue.display.color ?? FALLBACK_COLOR)
     ),
   ];
+
+  // gradientFills is pre-computed in PieChartPanel and shared with the legend
+  // to guarantee consistent colors between slices and legend items.
 
   return (
     <div className={styles.container}>
@@ -118,6 +128,13 @@ export const PieChart = ({
                 {pie.arcs.map((arc) => {
                   const color = arc.data.display.color ?? FALLBACK_COLOR;
                   const highlightState = getHighlightState(highlightedTitle, arc);
+                  // In gradient mode use the pre-computed interpolated fill; otherwise
+                  // fall back to the per-series radial gradient (existing behaviour).
+                  // Items with a field-level color override are not in gradientFills —
+                  // fall back to display.color (the override value) rather than FALLBACK_COLOR.
+                  const fill = gradientFills
+                    ? (gradientFills.get(arc.data.display.title ?? '') ?? arc.data.display.color ?? FALLBACK_COLOR)
+                    : getGradientColor(color);
 
                   if (arc.data.hasLinks && arc.data.getLinks) {
                     return (
@@ -128,7 +145,7 @@ export const PieChart = ({
                             highlightState={highlightState}
                             arc={arc}
                             pie={pie}
-                            fill={getGradientColor(color)}
+                            fill={fill}
                             openMenu={api.openMenu}
                             tooltipOptions={tooltipOptions}
                           />
@@ -143,7 +160,7 @@ export const PieChart = ({
                         tooltip={tooltip}
                         arc={arc}
                         pie={pie}
-                        fill={getGradientColor(color)}
+                        fill={fill}
                         tooltipOptions={tooltipOptions}
                       />
                     );
@@ -152,6 +169,16 @@ export const PieChart = ({
                 {showLabel &&
                   pie.arcs.map((arc) => {
                     const highlightState = getHighlightState(highlightedTitle, arc);
+                    // In gradient mode pick black or white based on WCAG contrast ratio
+                    // so labels stay readable across the full color range of the gradient.
+                    const fillForLabel = gradientFills?.get(arc.data.display.title ?? '');
+                    const labelColor = fillForLabel
+                      ? tinycolor
+                          .mostReadable(fillForLabel, ['#ffffff', '#000000'], {
+                            includeFallbackColors: true,
+                          })
+                          .toHexString()
+                      : theme.colors.text.primary;
                     return (
                       <PieLabel
                         arc={arc}
@@ -161,7 +188,7 @@ export const PieChart = ({
                         innerRadius={layout.innerRadius}
                         displayLabels={displayLabels}
                         total={total}
-                        color={theme.colors.text.primary}
+                        color={labelColor}
                       />
                     );
                   })}
@@ -352,6 +379,41 @@ function getLabelPos(arc: PieArcDatum<FieldDisplay>, outerRadius: number, innerR
   const r = (outerRadius + innerRadius) / 2;
   const a = (+arc.startAngle + +arc.endAngle) / 2 - Math.PI / 2;
   return [Math.cos(a) * r, Math.sin(a) * r];
+}
+
+/**
+ * Compute a flat hex fill color for each slice when the "gradient" color scheme is active.
+ *
+ * Slices are ranked by their numeric value from largest (rank 0) to smallest
+ * (rank N-1). The interpolation parameter t = rank / (N-1) linearly maps that
+ * rank onto the [colorFrom, colorTo] range in RGB space:
+ *   - largest slice  → colorFrom (t = 0)
+ *   - smallest slice → colorTo   (t = 1)
+ *   - intermediate   → RGB lerp between the two
+ *
+ * When there is only one slice it receives colorFrom exactly.
+ * Duplicate values retain their relative order (stable sort).
+ *
+ * @returns A Map keyed by `FieldDisplay.display.title` → hex color string.
+ */
+export function computeGradientFills(items: FieldDisplay[], colorFrom: string, colorTo: string): Map<string, string> {
+  // Sort a copy by value descending to determine rank; original order is unchanged.
+  const sorted = [...items].sort((a, b) => b.display.numeric - a.display.numeric);
+  const n = sorted.length;
+  const from = tinycolor(colorFrom).toRgb();
+  const to = tinycolor(colorTo).toRgb();
+  const fills = new Map<string, string>();
+
+  for (let rank = 0; rank < n; rank++) {
+    const item = sorted[rank];
+    const t = n > 1 ? rank / (n - 1) : 0;
+    const r = Math.round(from.r * (1 - t) + to.r * t);
+    const g = Math.round(from.g * (1 - t) + to.g * t);
+    const b = Math.round(from.b * (1 - t) + to.b * t);
+    fills.set(item.display.title ?? '', tinycolor({ r, g, b }).toHexString());
+  }
+
+  return fills;
 }
 
 function getGradientColorFrom(color: string, theme: GrafanaTheme2) {
