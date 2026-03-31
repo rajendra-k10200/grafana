@@ -379,17 +379,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: &release_targets
-          - linux-amd64
-          - linux-arm64
-          - linux-s390x
-          - linux-armv6
-          - linux-armv7
-          - linux-riscv64
-          - windows-amd64
-          - windows-arm64
-          - darwin-amd64
-          - darwin-arm64
+        include: &release_targets
+          - name: linux-amd64
+          - name: linux-arm64
+          - name: linux-s390x
+          - name: linux-armv6
+          - name: linux-armv7
+          - name: linux-riscv64
+          - name: windows-amd64
+          - name: windows-arm64
+          - name: darwin-amd64
+          - name: darwin-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -412,7 +412,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: *release_targets
+        include: *release_targets
         exclude:
           - name: linux-riscv64
           - name: darwin-amd64
@@ -439,7 +439,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: *release_targets
+        include: *release_targets
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -462,7 +462,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: *release_targets
+        include: *release_targets
         exclude:
           - name: linux-riscv64
           - name: darwin-amd64
