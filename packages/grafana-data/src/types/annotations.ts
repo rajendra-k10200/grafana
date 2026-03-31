@@ -23,7 +23,7 @@ export interface AnnotationQuery<TQuery extends DataQuery = DataQuery> extends S
 }
 
 export interface AnnotationEvent {
-  id?: string;
+  id?: number;
   annotation?: any;
   dashboardId?: number;
   /** May be null if it isn't set via the HTTP API */
@@ -49,8 +49,8 @@ export interface AnnotationEvent {
 }
 
 export interface AnnotationEventUIModel {
-  // @todo this is actually a number, and sending a string will break the API response! https://github.com/grafana/grafana/issues/120097
-  id?: string;
+  // Numeric identifier; optional because new events do not have an id until they are persisted.
+  id?: number;
   from: number;
   to: number;
   tags: string[];
