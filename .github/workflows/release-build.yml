@@ -140,7 +140,7 @@ jobs:
 
   build-backend:
     name: build backend / ${{ matrix.name }}
-    runs-on: ubuntu-x64-large-io
+    runs-on: ubuntu-x64-large
     needs: [setup]
     permissions:
       contents: read
