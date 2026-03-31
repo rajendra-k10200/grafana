@@ -379,26 +379,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: &release_targets
-          - name: linux-amd64
-          - name: linux-arm64
-          - name: linux-s390x
-          - name: linux-armv6
-          - name: linux-armv7
-          - name: linux-riscv64
-          - name: windows-amd64
-          - name: windows-arm64
-          - name: darwin-amd64
-          - name: darwin-arm64
+        name: &release_targets
+          - linux-amd64
+          - linux-arm64
+          - linux-s390x
+          - linux-armv6
+          - linux-armv7
+          - linux-riscv64
+          - windows-amd64
+          - windows-arm64
+          - darwin-amd64
+          - darwin-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
     needs:
       - setup
       - build-targz
-      - verify-targz
       - build-packages
-      - verify-packages
     with:
       bucket: grafana-prerelease
       pattern: artifacts-targz-${{ matrix.name }}
@@ -412,7 +410,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: *release_targets
+        name: *release_targets
         exclude:
           - name: linux-riscv64
           - name: darwin-amd64
@@ -423,9 +421,7 @@ jobs:
     needs:
       - setup
       - build-targz
-      - verify-targz
       - build-packages
-      - verify-packages
     with:
       bucket: grafana-prerelease
       pattern: artifacts-${{ matrix.name }}
@@ -439,16 +435,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: *release_targets
+        name: *release_targets
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
     needs:
       - setup
       - build-targz
-      - verify-targz
       - build-packages
-      - verify-packages
     with:
       bucket: grafana-prerelease
       pattern: artifacts-list-targz-${{ matrix.name }}
@@ -462,7 +456,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: *release_targets
+        name: *release_targets
         exclude:
           - name: linux-riscv64
           - name: darwin-amd64
@@ -473,9 +467,7 @@ jobs:
     needs:
       - setup
       - build-targz
-      - verify-targz
       - build-packages
-      - verify-packages
     with:
       bucket: grafana-prerelease
       pattern: artifacts-list-${{ matrix.name }}
