@@ -184,6 +184,7 @@ func (m *JobMetrics) RecordResourceOperation(action provisioning.JobAction, resu
 		reason = result.WarningReason()
 	default:
 		outcome = OutcomeSuccess
+		reason = result.Reason()
 	}
 
 	m.resourceOpsTotal.WithLabelValues(string(action), string(fileActionToOperation(result.Action())), string(outcome), reason, result.Group(), result.Kind()).Inc()
