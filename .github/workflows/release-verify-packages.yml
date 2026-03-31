@@ -42,10 +42,10 @@ jobs:
 
       - name: Start deb package under test
         run: |
-          PACKAGE_PATH="$(find dist -maxdepth 1 -type f -name '*_linux_amd64.deb' | sort | sed -n '1p')"
+          PACKAGE_PATH="$(find dist -type f -name '*_linux_amd64.deb' | sort | sed -n '1p')"
           if [ -z "$PACKAGE_PATH" ]; then
             echo "No deb package found in dist/"
-            ls -la dist
+            ls -laR dist
             exit 1
           fi
 
@@ -154,10 +154,10 @@ jobs:
 
       - name: Start rpm package under test
         run: |
-          PACKAGE_PATH="$(find dist -maxdepth 1 -type f -name '*_linux_amd64.rpm' | sort | sed -n '1p')"
+          PACKAGE_PATH="$(find dist -type f -name '*_linux_amd64.rpm' | sort | sed -n '1p')"
           if [ -z "$PACKAGE_PATH" ]; then
             echo "No rpm package found in dist/"
-            ls -la dist
+            ls -laR dist
             exit 1
           fi
           if ! command -v bsdtar >/dev/null 2>&1; then
@@ -249,10 +249,10 @@ jobs:
 
       - name: Load Docker image under test
         run: |
-          PACKAGE_PATH="$(find dist -maxdepth 1 -type f -name '*_linux_amd64.docker.tar.gz' | sort | sed -n '1p')"
+          PACKAGE_PATH="$(find dist -type f -name '*_linux_amd64.docker.tar.gz' | sort | sed -n '1p')"
           if [ -z "$PACKAGE_PATH" ]; then
             echo "No docker package found in dist/"
-            ls -la dist
+            ls -laR dist
             exit 1
           fi
           IMAGE="$(docker load -i "$PACKAGE_PATH" | sed -n 's/^Loaded image: //p' | sed -n '1p')"
@@ -336,10 +336,10 @@ jobs:
 
       - name: Load Docker Ubuntu image under test
         run: |
-          PACKAGE_PATH="$(find dist -maxdepth 1 -type f -name '*_linux_amd64.ubuntu.docker.tar.gz' | sort | sed -n '1p')"
+          PACKAGE_PATH="$(find dist -type f -name '*_linux_amd64.ubuntu.docker.tar.gz' | sort | sed -n '1p')"
           if [ -z "$PACKAGE_PATH" ]; then
             echo "No docker-ubuntu package found in dist/"
-            ls -la dist
+            ls -laR dist
             exit 1
           fi
           IMAGE="$(docker load -i "$PACKAGE_PATH" | sed -n 's/^Loaded image: //p' | sed -n '1p')"

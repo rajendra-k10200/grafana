@@ -42,9 +42,10 @@ jobs:
 
       - name: Extract tar.gz package
         run: |
-          TARBALL="$(find dist -maxdepth 1 -type f -name '*.tar.gz' | sort | sed -n '1p')"
+          TARBALL="$(find dist -type f -name '*.tar.gz' ! -name '*.docker.tar.gz' | sort | sed -n '1p')"
           if [ -z "$TARBALL" ]; then
             echo "No tar.gz package found in dist/"
+            ls -laR dist
             exit 1
           fi
           mkdir -p grafana-server
