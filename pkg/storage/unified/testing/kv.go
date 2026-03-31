@@ -952,7 +952,7 @@ func saveKVHelper(t *testing.T, kv resource.KV, ctx context.Context, section, ke
 
 func runTestKVBatch(t *testing.T, kv resource.KV, nsPrefix string) {
 	ctx := testutil.NewTestContext(t, time.Now().Add(30*time.Second))
-	section := nsPrefix + "-batch"
+	section := testSection
 
 	t.Run("batch with empty section", func(t *testing.T) {
 		err := kv.Batch(ctx, "", nil)
@@ -1190,6 +1190,36 @@ func runTestKVBatch(t *testing.T, kv resource.KV, nsPrefix string) {
 		value, err = io.ReadAll(reader)
 		require.NoError(t, err)
 		assert.Equal(t, "put", string(value))
+		err = reader.Close()
+		require.NoError(t, err)
+	})
+
+	t.Run("batch respects earlier operations on the same key", func(t *testing.T) {
+		saveKVHelper(t, kv, ctx, section, "replace-in-batch", strings.NewReader("old"))
+
+		ops := []resource.BatchOp{
+			{Mode: kvpkg.BatchOpCreate, Key: "create-then-update", Value: []byte("created")},
+			{Mode: kvpkg.BatchOpUpdate, Key: "create-then-update", Value: []byte("updated")},
+			{Mode: kvpkg.BatchOpDelete, Key: "replace-in-batch"},
+			{Mode: kvpkg.BatchOpCreate, Key: "replace-in-batch", Value: []byte("recreated")},
+		}
+
+		err := kv.Batch(ctx, section, ops)
+		require.NoError(t, err)
+
+		reader, err := kv.Get(ctx, section, "create-then-update")
+		require.NoError(t, err)
+		value, err := io.ReadAll(reader)
+		require.NoError(t, err)
+		require.Equal(t, "updated", string(value))
+		err = reader.Close()
+		require.NoError(t, err)
+
+		reader, err = kv.Get(ctx, section, "replace-in-batch")
+		require.NoError(t, err)
+		value, err = io.ReadAll(reader)
+		require.NoError(t, err)
+		require.Equal(t, "recreated", string(value))
 		err = reader.Close()
 		require.NoError(t, err)
 	})

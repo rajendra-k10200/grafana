@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"errors"
@@ -573,6 +574,52 @@ func (n *dataStore) batchDelete(ctx context.Context, keys []DataKey) error {
 		}
 	}
 
+	return nil
+}
+
+// historyImportItem represents one authoritative history row produced by a
+// legacy migrator. The row has already been assigned its final DataKey.
+type historyImportItem struct {
+	Key   DataKey
+	Value []byte
+}
+
+// importHistoryBatch appends authoritative DataSection history rows for
+// migrator-driven bulk imports. This path is intentionally separate from
+// KV.Batch because migration imports append ordered history after wiping the
+// destination collection; they do not need generic Put/Create/Update/Delete
+// semantics, duplicate detection, or current-state validation.
+func (d *dataStore) importHistoryBatch(ctx context.Context, items []historyImportItem) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	for _, item := range items {
+		if err := validateDataKey(item.Key); err != nil {
+			return fmt.Errorf("invalid data key: %w", err)
+		}
+	}
+
+	if importer, ok := d.kv.(kvpkg.HistoryImporter); ok {
+		rows := make([]kvpkg.HistoryImportRow, len(items))
+		for i, item := range items {
+			key := item.Key.String()
+			if item.Key.GUID != "" {
+				key = item.Key.StringWithGUID()
+			}
+			rows[i] = kvpkg.HistoryImportRow{
+				Key:   key,
+				Value: item.Value,
+			}
+		}
+		return importer.ImportHistory(ctx, rows)
+	}
+
+	for i, item := range items {
+		if err := d.Save(ctx, item.Key, bytes.NewReader(item.Value)); err != nil {
+			return fmt.Errorf("import history item %d: %w", i, err)
+		}
+	}
 	return nil
 }
 

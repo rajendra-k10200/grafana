@@ -48,8 +48,37 @@ func TestSQLKV(t *testing.T) {
 		return kv
 	}, &KVTestOptions{
 		NSPrefix: "sql-kv-test",
-		SkipTests: map[string]bool{
-			TestKVBatch: true, // Batch operations not yet implemented for sqlKV
-		},
 	})
+}
+
+func TestSQLKVBatchWithExternalTxRollsBackOnFailure(t *testing.T) {
+	ctx := context.Background()
+
+	dbstore := db.InitTestDB(t)
+	eDB, err := dbimpl.ProvideResourceDB(dbstore, setting.NewCfg(), nil)
+	require.NoError(t, err)
+
+	dbConn, err := eDB.Init(ctx)
+	require.NoError(t, err)
+
+	store, err := kv.NewSQLKV(dbConn.SqlDB(), dbConn.DriverName())
+	require.NoError(t, err)
+
+	tx, err := dbConn.SqlDB().BeginTx(ctx, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = tx.Rollback()
+	})
+
+	txCtx := kv.ContextWithDBTX(ctx, tx)
+	err = store.Batch(txCtx, kv.EventsSection, []resource.BatchOp{
+		{Mode: kv.BatchOpPut, Key: "rolled-back-put", Value: []byte("value")},
+		{Mode: kv.BatchOpUpdate, Key: "missing-key", Value: []byte("should-fail")},
+	})
+	require.ErrorIs(t, err, resource.ErrNotFound)
+
+	require.NoError(t, tx.Commit())
+
+	_, err = store.Get(ctx, kv.EventsSection, "rolled-back-put")
+	require.ErrorIs(t, err, resource.ErrNotFound)
 }
