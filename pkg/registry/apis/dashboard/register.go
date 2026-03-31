@@ -43,7 +43,6 @@ import (
 	"github.com/grafana/grafana/pkg/infra/db"
 	"github.com/grafana/grafana/pkg/infra/tracing"
 	"github.com/grafana/grafana/pkg/registry/apis/dashboard/legacy"
-	"github.com/grafana/grafana/pkg/registry/apis/dashboard/legacysearcher"
 	"github.com/grafana/grafana/pkg/registry/apis/dashboard/snapshot"
 	"github.com/grafana/grafana/pkg/services/accesscontrol"
 	"github.com/grafana/grafana/pkg/services/apiserver"
@@ -116,7 +115,6 @@ type DashboardsAPIBuilder struct {
 	QuotaService             quota.Service
 	ProvisioningService      provisioning.ProvisioningService
 	minRefreshInterval       string
-	dualWriter               dualwrite.Service
 	folderClientProvider     client.K8sHandlerProvider
 	libraryPanels            libraryelements.Service // for legacy library panels
 	publicDashboardService   publicdashboards.Service
@@ -164,7 +162,6 @@ func RegisterAPIService(
 
 	dbp := legacysql.NewDatabaseProvider(sql)
 	namespacer := request.GetNamespaceMapper(cfg)
-	legacyDashboardSearcher := legacysearcher.NewDashboardSearchClient(dashStore, sorter)
 	folderClient := client.NewK8sHandler(dual, request.GetNamespaceMapper(cfg), folders.FolderResourceInfo.GroupVersionResource(), restConfigProvider.GetRestConfig, dashStore, userService, unified, sorter, features)
 	dashboardClient := client.NewK8sHandler(dual, namespacer, dashv1.DashboardResourceInfo.GroupVersionResource(), restConfigProvider.GetRestConfig, dashStore, userService, unified, sorter, features)
 
@@ -183,12 +180,11 @@ func RegisterAPIService(
 		accessControl:            accessControl,
 		accessClient:             accessClient,
 		unified:                  unified,
-		search:                   NewSearchHandler(tracing, dual, legacyDashboardSearcher, unified, features),
+		search:                   NewSearchHandler(tracing, unified, features),
 		dashStore:                dashStore,
 		QuotaService:             quotaService,
 		ProvisioningService:      provisioning,
 		minRefreshInterval:       cfg.MinRefreshInterval,
-		dualWriter:               dual,
 		dashboardK8sClient:       dashboardClient,
 		folderClientProvider:     newSimpleFolderClientProvider(folderClient),
 		libraryPanels:            libraryPanels,
