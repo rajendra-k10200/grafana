@@ -169,10 +169,12 @@ func RegisterAPIService(
 	dashboardClient := client.NewK8sHandler(dual, namespacer, dashv1.DashboardResourceInfo.GroupVersionResource(), restConfigProvider.GetRestConfig, dashStore, userService, unified, sorter, features)
 
 	snapshotOptions := dashv0.SnapshotSharingOptions{
-		SnapshotsEnabled:     cfg.SnapshotEnabled,
-		ExternalSnapshotURL:  cfg.ExternalSnapshotUrl,
-		ExternalSnapshotName: cfg.ExternalSnapshotName,
-		ExternalEnabled:      cfg.ExternalEnabled,
+		SnapshotsEnabled:      cfg.SnapshotEnabled,
+		ExternalSnapshotURL:   cfg.ExternalSnapshotUrl,
+		ExternalSnapshotName:  cfg.ExternalSnapshotName,
+		ExternalEnabled:       cfg.ExternalEnabled,
+		ExternalSnapshotToken: cfg.ExternalSnapshotToken,
+		PublicMode:            cfg.SnapshotPublicMode,
 	}
 
 	builder := &DashboardsAPIBuilder{
@@ -828,9 +830,10 @@ func (b *DashboardsAPIBuilder) storageForVersion(
 	// Snapshots - only v0alpha1
 	if snapshots != nil && dashboards.GroupVersion().Version == "v0alpha1" {
 		snapshotLegacyStore := &snapshot.SnapshotLegacyStore{
-			ResourceInfo: *snapshots,
-			Service:      b.snapshotService,
-			Namespacer:   b.namespacer,
+			ResourceInfo:          *snapshots,
+			Service:               b.snapshotService,
+			Namespacer:            b.namespacer,
+			ExternalSnapshotToken: b.snapshotOptions.ExternalSnapshotToken,
 		}
 
 		unifiedSnapshotStore, err := grafanaregistry.NewRegistryStore(opts.Scheme, *snapshots, opts.OptsGetter)
