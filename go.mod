@@ -30,7 +30,7 @@ require (
 	github.com/andybalholm/brotli v1.2.0 // @grafana/partner-datasources
 	github.com/apache/arrow-go/v18 v18.5.2 // @grafana/plugins-platform-backend
 	github.com/armon/go-radix v1.0.0 // @grafana/grafana-app-platform-squad
-	github.com/aws/aws-sdk-go v1.55.7 // @grafana/aws-datasources
+	github.com/aws/aws-sdk-go v1.55.8 // @grafana/aws-datasources
 	github.com/aws/aws-sdk-go-v2 v1.41.4 // @grafana/aws-datasources
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.12 // @grafana/grafana-operator-experience-squad
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.45.3 // @grafana/aws-datasources
@@ -38,7 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.290.0 // @grafana/aws-datasources
 	github.com/aws/aws-sdk-go-v2/service/oam v1.18.3 // @grafana/aws-datasources
 	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.26.6 // @grafana/aws-datasources
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.40.1 // @grafana/grafana-operator-experience-squad
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.40.2 // @grafana/grafana-operator-experience-squad
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.9 // @grafana/grafana-operator-experience-squad
 	github.com/aws/smithy-go v1.24.2 // @grafana/aws-datasources
 	github.com/beevik/etree v1.6.0 // @grafana/grafana-backend-group
@@ -197,8 +197,8 @@ require (
 	go.uber.org/multierr v1.11.0 // @grafana/grafana-app-platform-squad
 	go.uber.org/zap v1.27.1 // @grafana/identity-access-team
 	go.yaml.in/yaml/v3 v3.0.4 // @grafana/alerting-backend
-	gocloud.dev v0.44.0 // @grafana/grafana-app-platform-squad
-	gocloud.dev/secrets/hashivault v0.44.0 // @grafana/grafana-operator-experience-squad
+	gocloud.dev v0.45.0 // @grafana/grafana-app-platform-squad
+	gocloud.dev/secrets/hashivault v0.45.0 // @grafana/grafana-operator-experience-squad
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // @grafana/alerting-backend
 	golang.org/x/net v0.52.0 // @grafana/oss-big-tent @grafana/partner-datasources
 	golang.org/x/oauth2 v0.36.0 // @grafana/identity-access-team
@@ -318,7 +318,7 @@ require (
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/internal v0.7.1 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
@@ -352,7 +352,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.7 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.32.12 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.20 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.3 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.12 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.20 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.20 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.6 // indirect
@@ -361,7 +361,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.12 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.20 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.20 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kms v1.41.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kms v1.49.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.97.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.0.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.13 // indirect
@@ -494,7 +494,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/hashicorp/memberlist v0.5.4 // indirect
 	github.com/hashicorp/serf v0.10.2 // indirect
-	github.com/hashicorp/vault/api v1.20.0 // indirect
+	github.com/hashicorp/vault/api v1.22.0 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/huandu/go-clone v1.7.3 // indirect
 	github.com/huandu/go-sqlbuilder v1.39.1 // indirect
