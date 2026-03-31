@@ -257,9 +257,6 @@ jobs:
         with:
           name: release-backend-${{ matrix.name }}
           path: bin/${{ matrix.os }}/${{ matrix.arch }}
-      - name: Fix binary permissions
-        if: matrix.os != 'windows'
-        run: chmod +x bin/${{ matrix.os }}/${{ matrix.arch }}/grafana*
       - name: Build tar.gz
         env:
           GOOS: ${{ matrix.os }}
@@ -268,13 +265,21 @@ jobs:
           BUILD_NUMBER: ${{ github.run_id }}
           BUILD_VERSION: ${{ needs.setup.outputs.version }}
         run: make build-targz BUILD_VERSION="$BUILD_VERSION" BUILD_NUMBER="$BUILD_NUMBER"
+      - name: Generate tar.gz checksums
+        run: |
+          set -euo pipefail
+          for f in dist/*.tar.gz; do
+            [ -e "$f" ] || continue
+            sha256sum "$f" > "${f}.sha256"
+          done
       - name: Write artifact list
         run: |
           listfile="artifacts-list-targz-${{ matrix.name }}.txt"
           : > "$listfile"
           for f in dist/*.tar.gz; do
             [ -e "$f" ] || continue
-            echo "$PWD/$f" >> "$listfile"
+            echo "$f" >> "$listfile"
+            echo "${f}.sha256" >> "$listfile"
           done
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
@@ -369,8 +374,22 @@ jobs:
           path: ${{ steps.build.outputs.dist-dir }}
           retention-days: 1
 
-  publish-artifacts:
-    name: Upload artifacts
+  publish-targz-artifacts:
+    name: Upload targz artifact / ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: &release_targets
+          - linux-amd64
+          - linux-arm64
+          - linux-s390x
+          - linux-armv6
+          - linux-armv7
+          - linux-riscv64
+          - windows-amd64
+          - windows-arm64
+          - darwin-amd64
+          - darwin-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -382,7 +401,84 @@ jobs:
       - verify-packages
     with:
       bucket: grafana-prerelease
-      pattern: artifacts-*
+      pattern: artifacts-targz-${{ matrix.name }}
+      run-id: ${{ github.run_id }}
+      bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
+      environment: prod
+      runs-on: ubuntu-x64-small
+
+  publish-package-artifacts:
+    name: Upload package artifact / ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: *release_targets
+        exclude:
+          - name: linux-riscv64
+          - name: darwin-amd64
+          - name: darwin-arm64
+    uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
+    permissions:
+      id-token: write
+    needs:
+      - setup
+      - build-targz
+      - verify-targz
+      - build-packages
+      - verify-packages
+    with:
+      bucket: grafana-prerelease
+      pattern: artifacts-${{ matrix.name }}
+      run-id: ${{ github.run_id }}
+      bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
+      environment: prod
+      runs-on: ubuntu-x64-small
+
+  publish-targz-artifact-lists:
+    name: Upload targz artifact list / ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: *release_targets
+    uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
+    permissions:
+      id-token: write
+    needs:
+      - setup
+      - build-targz
+      - verify-targz
+      - build-packages
+      - verify-packages
+    with:
+      bucket: grafana-prerelease
+      pattern: artifacts-list-targz-${{ matrix.name }}
+      run-id: ${{ github.run_id }}
+      bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
+      environment: prod
+      runs-on: ubuntu-x64-small
+
+  publish-package-artifact-lists:
+    name: Upload package artifact list / ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: *release_targets
+        exclude:
+          - name: linux-riscv64
+          - name: darwin-amd64
+          - name: darwin-arm64
+    uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
+    permissions:
+      id-token: write
+    needs:
+      - setup
+      - build-targz
+      - verify-targz
+      - build-packages
+      - verify-packages
+    with:
+      bucket: grafana-prerelease
+      pattern: artifacts-list-${{ matrix.name }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
