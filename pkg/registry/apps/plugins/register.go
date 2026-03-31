@@ -57,10 +57,15 @@ func ProvideAppInstaller(
 	logger := logging.DefaultLogger.With("app", "plugins.app")
 
 	localProvider := meta.NewLocalProvider(pluginStore, moduleHashCalc)
-	coreProvider := meta.NewCoreProvider(logger, func() (string, error) {
-		return getPluginsPath(cfgProvider)
+	coreProvider, err := meta.NewCoreProvider(logger, meta.CoreProviderOpts{
+		PluginsPath: func() (string, error) {
+			return getPluginsPath(cfgProvider)
+		},
 	})
-	if err := coreProvider.Init(context.Background()); err != nil {
+	if err != nil {
+		return nil, err
+	}
+	if err = coreProvider.Init(context.Background()); err != nil {
 		logger.Warn("Failed to eagerly load core plugins", "error", err)
 	}
 	metaProviderManager := meta.NewProviderManager(coreProvider, localProvider)
