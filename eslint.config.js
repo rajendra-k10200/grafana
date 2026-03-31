@@ -214,7 +214,13 @@ module.exports = [
           selector: "JSXElement[openingElement.name.name='a'] > JSXText[value!=/^\\s*$/]",
           message: 'No bare anchor nodes containing only text. Use `TextLink` instead.',
         },
+        {
+          selector: "CallExpression[callee.type='Identifier'][callee.name='reportInteraction']",
+          message:
+            'reportInteraction() is deprecated. Use defineFeatureEvents() from @grafana/runtime/internal instead.',
+        },
       ],
+      '@grafana/define-feature-events': 'error',
     },
   },
 
@@ -627,6 +633,11 @@ module.exports = [
           message:
             'Usage of config.panels is not allowed. Use the function getPanelPluginMetas or usePanelPluginMetas from @grafana/runtime/internal instead',
         },
+        {
+          selector: "CallExpression[callee.type='Identifier'][callee.name='reportInteraction']",
+          message:
+            'reportInteraction() is deprecated. Use defineFeatureEvents() from @grafana/runtime/internal instead.',
+        },
       ],
     },
   },
@@ -649,6 +660,11 @@ module.exports = [
           selector: 'MemberExpression[object.name="config"][property.name="panels"]',
           message:
             'Usage of config.panels is not allowed. Use the function getPanelPluginMetas or usePanelPluginMetas from @grafana/runtime/internal instead',
+        },
+        {
+          selector: "CallExpression[callee.type='Identifier'][callee.name='reportInteraction']",
+          message:
+            'reportInteraction() is deprecated. Use defineFeatureEvents() from @grafana/runtime/internal instead.',
         },
       ],
     },
