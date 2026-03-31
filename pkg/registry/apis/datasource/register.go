@@ -24,6 +24,7 @@ import (
 	"github.com/grafana/grafana/pkg/infra/metrics/metricutil"
 	"github.com/grafana/grafana/pkg/plugins"
 	"github.com/grafana/grafana/pkg/plugins/manager/sources"
+	"github.com/grafana/grafana/pkg/registry/apis/datasource/hardcoded"
 	"github.com/grafana/grafana/pkg/registry/apis/query/queryschema"
 	"github.com/grafana/grafana/pkg/services/accesscontrol"
 	"github.com/grafana/grafana/pkg/services/apiserver/builder"
@@ -51,6 +52,7 @@ type DataSourceAPIBuilder struct {
 	datasources            PluginDatasourceProvider
 	contextProvider        PluginContextWrapper
 	accessControl          accesscontrol.AccessControl
+	schemaProvider         func() (*datasourceV0.DataSourceOpenAPIExtension, error)
 	queryTypes             *datasourceV0.QueryTypeDefinitionList
 	cfg                    DataSourceAPIBuilderConfig
 	dataSourceCRUDMetric   *prometheus.HistogramVec
@@ -116,6 +118,12 @@ func RegisterAPIService(
 		}
 
 		builder.SetDataSourceCRUDMetrics(dataSourceCRUDMetric)
+
+		// Hardcoded schemas for testdata
+		// NOTE: this will be driven by the pluginJSON/manifest soon
+		if pluginJSON.ID == "grafana-testdata-datasource" {
+			builder.schemaProvider = hardcoded.TestdataOpenAPIExtension
+		}
 
 		apiRegistrar.RegisterAPI(builder)
 	}

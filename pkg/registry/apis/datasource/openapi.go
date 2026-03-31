@@ -2,12 +2,17 @@ package datasource
 
 import (
 	"fmt"
+	"maps"
+	"slices"
+	"strings"
 
 	"k8s.io/kube-openapi/pkg/spec3"
 	"k8s.io/kube-openapi/pkg/validation/spec"
 
+	common "github.com/grafana/grafana/pkg/apimachinery/apis/common/v0alpha1"
 	datasourceV0 "github.com/grafana/grafana/pkg/apis/datasource/v0alpha1"
 	"github.com/grafana/grafana/pkg/registry/apis/query/queryschema"
+	"github.com/grafana/grafana/pkg/services/apiserver/builder"
 )
 
 func (b *DataSourceAPIBuilder) PostProcessOpenAPI(oas *spec3.OpenAPI) (*spec3.OpenAPI, error) {
@@ -75,31 +80,111 @@ func (b *DataSourceAPIBuilder) PostProcessOpenAPI(oas *spec3.OpenAPI) (*spec3.Op
 	ds.Properties["apiVersion"] = *spec.StringProperty().WithEnum(b.GetGroupVersion().String())
 	ds.Properties["kind"] = *spec.StringProperty().WithEnum("DataSource")
 
-	// For testdata, add an explicit response format
-	if b.pluginJSON.ID == "grafana-testdata-datasource" {
-		query.Post.Responses = &spec3.Responses{
-			ResponsesProps: spec3.ResponsesProps{
-				StatusCodeResponses: map[int]*spec3.Response{
-					200: {
-						ResponseProps: spec3.ResponseProps{
-							Description: "OK",
-							Content: map[string]*spec3.MediaType{
-								"application/json": {
-									MediaTypeProps: spec3.MediaTypeProps{
-										Schema: &spec.Schema{
-											SchemaProps: spec.SchemaProps{
-												Ref: spec.MustCreateRef("#/components/schemas/" + datasourceV0.QueryDataResponse{}.OpenAPIModelName()),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+	if b.schemaProvider == nil {
+		return oas, nil
+	}
+
+	custom, err := b.schemaProvider()
+	if err != nil {
+		return nil, err
+	}
+	return applyCustomSchemas(root, ds, oas, custom)
+}
+
+func applyCustomSchemas(root string, ds *spec.Schema, oas *spec3.OpenAPI, custom *datasourceV0.DataSourceOpenAPIExtension) (*spec3.OpenAPI, error) {
+	if custom == nil {
+		return oas, nil // nothing special
+	}
+
+	// Add custom schemas
+	maps.Copy(oas.Components.Schemas, custom.Schemas)
+
+	// Replace the generic DataSourceSpec with the explicit one
+	if custom.DataSourceSpec != nil {
+		oas.Components.Schemas["DataSourceSpec"] = custom.DataSourceSpec
+		ds.Properties["spec"] = spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Ref: spec.MustCreateRef("#/components/schemas/DataSourceSpec"),
 			},
 		}
 	}
 
+	if len(custom.SecureValues) > 0 {
+		example := common.InlineSecureValues{}
+		ref := spec.MustCreateRef("#/components/schemas/com.github.grafana.grafana.pkg.apimachinery.apis.common.v0alpha1.InlineSecureValue")
+		secure := &spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Properties:           make(map[string]spec.Schema),
+				AdditionalProperties: &spec.SchemaOrBool{Allows: false},
+			}}
+		secure.Description = "custom secure value definition"
+
+		for _, v := range custom.SecureValues {
+			secure.Properties[v.Key] = spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Description: v.Description,
+					Ref:         ref,
+				},
+			}
+			if v.Required {
+				secure.Required = append(secure.Required, v.Key)
+				example[v.Key] = common.InlineSecureValue{Create: "***"}
+			}
+		}
+
+		if len(example) > 0 {
+			secure.Example = example
+		}
+
+		// Link the explicit secure values in the resource
+		oas.Components.Schemas["SecureValues"] = secure
+		ds.Properties["secure"] = spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Ref: spec.MustCreateRef("#/components/schemas/SecureValues"),
+			},
+		}
+	}
+
+	// Add examples to the POST request
+	if len(custom.Examples) > 0 {
+		ds := oas.Paths.Paths[root+"namespaces/{namespace}/datasources"]
+		if ds != nil && ds.Post != nil {
+			for _, c := range ds.Post.RequestBody.Content {
+				c.Examples = custom.Examples
+			}
+		}
+	}
+
+	if len(custom.Routes) > 0 {
+		ds := oas.Paths.Paths[root+"namespaces/{namespace}/datasources/{name}"]
+		if ds == nil || len(ds.Parameters) < 2 {
+			return nil, fmt.Errorf("missing Parameters")
+		}
+
+		prefix := root + "namespaces/{namespace}/datasources/{name}/resource"
+		for k := range oas.Paths.Paths {
+			if strings.HasPrefix(k, prefix) {
+				delete(oas.Paths.Paths, k)
+			}
+		}
+
+		for k, v := range custom.Routes {
+			if k != "" && !strings.HasPrefix(k, "/") {
+				return nil, fmt.Errorf("path must have slash prefix")
+			}
+			v.Parameters = append(v.Parameters, ds.Parameters[0:2]...)
+			for m, op := range builder.GetPathOperations(&v.PathProps) {
+				if op.Extensions == nil {
+					op.Extensions = make(spec.Extensions)
+				}
+				if !slices.Contains(op.Tags, "Route") {
+					op.Tags = append(op.Tags, "Route") // Custom resource?
+				}
+				tmp := strings.ReplaceAll(strings.ReplaceAll(k, "{", ""), "}", "")
+				op.OperationId = fmt.Sprintf("%s_route%s", strings.ToLower(m), strings.ReplaceAll(tmp, "/", "_"))
+			}
+			oas.Paths.Paths[prefix+k] = v
+		}
+	}
 	return oas, nil
 }
