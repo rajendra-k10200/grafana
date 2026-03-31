@@ -1,4 +1,5 @@
 import { css, cx } from '@emotion/css';
+import Skeleton from 'react-loading-skeleton';
 
 import { type GrafanaTheme2, VariableHide } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
@@ -248,6 +249,11 @@ function DashboardControlsRenderer({ model }: SceneComponentProps<DashboardContr
         )}
         {!hideLinksControls && !editPanel && <DashboardLinksControls links={links} dashboard={dashboard} />}
         {!hideDashboardControls && hasDashboardControls && <DashboardControlsButton dashboard={dashboard} />}
+        <DefaultControlsLoadingSkeleton
+          dashboard={dashboard}
+          hideVariableControls={hideVariableControls}
+          hideLinksControls={hideLinksControls}
+        />
         {editPanel && <PanelEditControls panelEditor={editPanel} />}
         {showDebugger && <SceneDebugger scene={model} key={'scene-debugger'} />}
       </div>
@@ -289,6 +295,11 @@ function DashboardControlsRenderer({ model }: SceneComponentProps<DashboardContr
       )}
       {!hideLinksControls && !editPanel && <DashboardLinksControls links={links} dashboard={dashboard} />}
       {!hideDashboardControls && hasDashboardControls && <DashboardControlsButton dashboard={dashboard} />}
+      <DefaultControlsLoadingSkeleton
+        dashboard={dashboard}
+        hideVariableControls={hideVariableControls}
+        hideLinksControls={hideLinksControls}
+      />
       {editPanel && <PanelEditControls panelEditor={editPanel} />}
       {showDebugger && <SceneDebugger scene={model} key={'scene-debugger'} />}
     </div>
@@ -371,6 +382,38 @@ function renderHiddenVariables(dashboard: DashboardScene) {
   }
   return null;
 }
+
+function DefaultControlsLoadingSkeleton({
+  dashboard,
+  hideVariableControls,
+  hideLinksControls,
+}: {
+  dashboard: DashboardScene;
+  hideVariableControls?: boolean;
+  hideLinksControls?: boolean;
+}) {
+  const { defaultVariablesLoading, defaultLinksLoading } = dashboard.useState();
+  const styles = useStyles2(getSkeletonStyles);
+
+  const showVariablesSkeleton = defaultVariablesLoading && !hideVariableControls;
+  const showLinksSkeleton = defaultLinksLoading && !hideLinksControls;
+
+  if (!showVariablesSkeleton && !showLinksSkeleton) {
+    return null;
+  }
+
+  return <Skeleton width={60} height={32} containerClassName={styles.skeletonContainer} />;
+}
+
+const getSkeletonStyles = (theme: GrafanaTheme2) => ({
+  skeletonContainer: css({
+    display: 'inline-flex',
+    lineHeight: 1,
+    verticalAlign: 'middle',
+    marginBottom: theme.spacing(1),
+    marginRight: theme.spacing(1),
+  }),
+});
 
 function getStyles(theme: GrafanaTheme2, isQueryEditorNext: boolean) {
   return {
