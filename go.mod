@@ -6,7 +6,7 @@ go 1.25.8
 require (
 	buf.build/gen/go/parca-dev/parca/connectrpc/go v1.18.1-20250703125925-3f0fcf4bff96.1 // @grafana/observability-traces-and-profiling
 	buf.build/gen/go/parca-dev/parca/protocolbuffers/go v1.36.2-20250703125925-3f0fcf4bff96.1 // @grafana/observability-traces-and-profiling
-	cloud.google.com/go/kms v1.25.0 // @grafana/grafana-backend-group
+	cloud.google.com/go/kms v1.26.0 // @grafana/grafana-backend-group
 	cloud.google.com/go/storage v1.61.3 // @grafana/grafana-backend-group
 	connectrpc.com/connect v1.19.1 // @grafana/observability-traces-and-profiling
 	dario.cat/mergo v1.0.2 // @grafana/grafana-app-platform-squad
