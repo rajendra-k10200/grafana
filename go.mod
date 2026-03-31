@@ -143,8 +143,8 @@ require (
 	github.com/olekukonko/tablewriter v1.1.3 // @grafana/grafana-backend-group
 	github.com/open-feature/go-sdk v1.17.1 // @grafana/grafana-backend-group
 	github.com/open-feature/go-sdk-contrib/providers/ofrep v0.1.7 // @grafana/grafana-backend-group
-	github.com/openfga/api/proto v0.0.0-20260122164422-25e22cb1875b // @grafana/identity-access-team
-	github.com/openfga/language/pkg/go v0.2.0-beta.2.0.20251027165255-0f8f255e5f6c // @grafana/identity-access-team
+	github.com/openfga/api/proto v0.0.0-20260319214821-f153694bfc20 // @grafana/identity-access-team
+	github.com/openfga/language/pkg/go v0.2.1 // @grafana/identity-access-team
 	github.com/openfga/openfga v1.11.3 // @grafana/identity-access-team
 	github.com/opentracing-contrib/go-grpc v0.1.2 // @grafana/grafana-search-and-storage
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // @grafana/grafana-search-and-storage
@@ -199,7 +199,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // @grafana/alerting-backend
 	gocloud.dev v0.44.0 // @grafana/grafana-app-platform-squad
 	gocloud.dev/secrets/hashivault v0.44.0 // @grafana/grafana-operator-experience-squad
-	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // @grafana/alerting-backend
+	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // @grafana/alerting-backend
 	golang.org/x/net v0.52.0 // @grafana/oss-big-tent @grafana/partner-datasources
 	golang.org/x/oauth2 v0.36.0 // @grafana/identity-access-team
 	golang.org/x/sync v0.20.0 // @grafana/alerting-backend
@@ -207,8 +207,8 @@ require (
 	golang.org/x/time v0.15.0 // @grafana/grafana-backend-group
 	gonum.org/v1/gonum v0.17.0 // @grafana/oss-big-tent
 	google.golang.org/api v0.272.0 // @grafana/grafana-backend-group
-	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // @grafana/identity-access-team
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // @grafana/identity-access-team
+	google.golang.org/genproto/googleapis/api v0.0.0-20260319201613-d00831a3d3e7 // @grafana/identity-access-team
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260319201613-d00831a3d3e7 // @grafana/identity-access-team
 	google.golang.org/grpc v1.79.3 // @grafana/plugins-platform-backend
 	google.golang.org/protobuf v1.36.11 // @grafana/plugins-platform-backend
 	gopkg.in/ini.v1 v1.67.1 // @grafana/alerting-backend
