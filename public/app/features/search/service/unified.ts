@@ -306,6 +306,7 @@ export class UnifiedSearcher implements GrafanaSearcher {
     let uri = searchURI;
     uri += `?query=${encodeURIComponent(query.query ?? '*')}`;
     uri += `&limit=${query.limit ?? pageSize}`;
+    uri += '&semantic=true';
 
     if (query.offset) {
       uri += `&offset=${query.offset}`;
