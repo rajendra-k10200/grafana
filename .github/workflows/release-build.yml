@@ -183,7 +183,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@7e10951aea186e886cef2f1a25a7bbf4e593d710
+        uses: docker/setup-qemu-action@6412e4f97516bb3da89fd7bb5fe523a3b2956c06
         with:
           image: docker.io/tonistiigi/binfmt:qemu-v10.2.1-65
       - uses: ./.github/actions/build-package
