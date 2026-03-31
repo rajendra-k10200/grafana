@@ -399,7 +399,7 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      pattern: artifacts-targz-${{ matrix.name }}
+      name: artifacts-targz-${{ matrix.name }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
@@ -424,7 +424,7 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      pattern: artifacts-${{ matrix.name }}
+      name: artifacts-${{ matrix.name }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
@@ -445,7 +445,7 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      pattern: artifacts-list-targz-${{ matrix.name }}
+      name: artifacts-list-targz-${{ matrix.name }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
@@ -470,7 +470,7 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      pattern: artifacts-list-${{ matrix.name }}
+      name: artifacts-list-${{ matrix.name }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
