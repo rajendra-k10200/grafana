@@ -5586,10 +5586,9 @@
         "panels": "Panels",
         "row": "Row",
         "rows": "Rows",
-        "section-variable": "Section Variables",
         "tab": "Tab",
         "tabs": "Tabs",
-        "variable": "{{type}} variable",
+        "variable": "Variable",
         "variable-set": "Variables"
       },
       "links": {
@@ -5650,8 +5649,6 @@
       "variables": {
         "add-variable": "Add variable",
         "reorder": "Drag to reorder",
-        "select-type": "Choose variable type",
-        "select-type-card-tooltip": "Click to select type",
         "select-variable": "Select"
       }
     },
@@ -6498,6 +6495,12 @@
       },
       "name": {
         "action": "Change variable name"
+      },
+      "replace": {
+        "action": "Replace variable"
+      },
+      "type": {
+        "action": "Change variable type"
       }
     },
     "version-history-comparison": {
