@@ -210,6 +210,7 @@ func (b *FolderAPIBuilder) storageForVersion(
 	storage[folders.StoragePath("access")] = &subAccessREST{
 		getter:       b.storage,
 		accessClient: b.accessClient,
+		ac:           b.ac,
 	}
 
 	// Adds a path to return children of a given folder
