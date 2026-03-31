@@ -375,21 +375,21 @@ jobs:
           retention-days: 1
 
   publish-targz-artifacts:
-    name: Upload targz artifact / ${{ matrix.name }}
+    name: Upload targz artifact / ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
-        name: &release_targets
-          - linux-amd64
-          - linux-arm64
-          - linux-s390x
-          - linux-armv6
-          - linux-armv7
-          - linux-riscv64
-          - windows-amd64
-          - windows-arm64
-          - darwin-amd64
-          - darwin-arm64
+        include:
+          - target: linux-amd64
+          - target: linux-arm64
+          - target: linux-s390x
+          - target: linux-armv6
+          - target: linux-armv7
+          - target: linux-riscv64
+          - target: windows-amd64
+          - target: windows-arm64
+          - target: darwin-amd64
+          - target: darwin-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -399,22 +399,25 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      name: artifacts-targz-${{ matrix.name }}
+      name: artifacts-targz-${{ matrix.target }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
       runs-on: ubuntu-x64-small
 
   publish-package-artifacts:
-    name: Upload package artifact / ${{ matrix.name }}
+    name: Upload package artifact / ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
-        name: *release_targets
-        exclude:
-          - name: linux-riscv64
-          - name: darwin-amd64
-          - name: darwin-arm64
+        include:
+          - target: linux-amd64
+          - target: linux-arm64
+          - target: linux-s390x
+          - target: linux-armv6
+          - target: linux-armv7
+          - target: windows-amd64
+          - target: windows-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -424,18 +427,28 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      name: artifacts-${{ matrix.name }}
+      name: artifacts-${{ matrix.target }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
       runs-on: ubuntu-x64-small
 
   publish-targz-artifact-lists:
-    name: Upload targz artifact list / ${{ matrix.name }}
+    name: Upload targz artifact list / ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
-        name: *release_targets
+        include:
+          - target: linux-amd64
+          - target: linux-arm64
+          - target: linux-s390x
+          - target: linux-armv6
+          - target: linux-armv7
+          - target: linux-riscv64
+          - target: windows-amd64
+          - target: windows-arm64
+          - target: darwin-amd64
+          - target: darwin-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -445,22 +458,25 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      name: artifacts-list-targz-${{ matrix.name }}
+      name: artifacts-list-targz-${{ matrix.target }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
       runs-on: ubuntu-x64-small
 
   publish-package-artifact-lists:
-    name: Upload package artifact list / ${{ matrix.name }}
+    name: Upload package artifact list / ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
-        name: *release_targets
-        exclude:
-          - name: linux-riscv64
-          - name: darwin-amd64
-          - name: darwin-arm64
+        include:
+          - target: linux-amd64
+          - target: linux-arm64
+          - target: linux-s390x
+          - target: linux-armv6
+          - target: linux-armv7
+          - target: windows-amd64
+          - target: windows-arm64
     uses: grafana/grafana/.github/workflows/publish-artifact.yml@main
     permissions:
       id-token: write
@@ -470,7 +486,7 @@ jobs:
       - build-packages
     with:
       bucket: grafana-prerelease
-      name: artifacts-list-${{ matrix.name }}
+      name: artifacts-list-${{ matrix.target }}
       run-id: ${{ github.run_id }}
       bucket-path: ${{ needs.setup.outputs.version }}_${{ github.run_id }}
       environment: prod
