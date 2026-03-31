@@ -25,7 +25,7 @@ jobs:
     outputs:
       changed: ${{ steps.detect-changes.outputs.backend == 'true' || steps.detect-changes.outputs.makefile == 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: true
           fetch-depth: 2
@@ -74,7 +74,7 @@ jobs:
             goos: windows
             goarch: arm64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Setup Go
@@ -126,7 +126,7 @@ jobs:
             goos: windows
             goarch: arm64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Setup Enterprise
@@ -156,7 +156,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Check jobs

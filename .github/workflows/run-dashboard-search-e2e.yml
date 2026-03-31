@@ -22,7 +22,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
       - name: Setup Go
@@ -90,7 +90,7 @@ jobs:
 
       steps:
         - name: Checkout repository
-          uses: actions/checkout@v5
+          uses: actions/checkout@v6.0.2
           with:
             persist-credentials: false
         - name: Restore Cached Node Modules

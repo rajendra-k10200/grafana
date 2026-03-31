@@ -20,7 +20,7 @@ jobs:
     outputs:
       changed: ${{ steps.detect-changes.outputs.frontend == 'true' || steps.detect-changes.outputs.backend == 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: true # required to get more history in the changed-files action
           fetch-depth: 2
@@ -43,7 +43,7 @@ jobs:
         if: github.event.pull_request.head.repo.fork == false
       - uses: grafana/shared-workflows/actions/login-to-gar@main
         if: github.event.pull_request.head.repo.fork == false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6.0.2
         with:
           persist-credentials: false
 

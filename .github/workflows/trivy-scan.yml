@@ -21,7 +21,7 @@ jobs:
       # renovate: datasource=github-releases depName=trivy packageName=aquasecurity/trivy
       TRIVY_VERSION: 'v0.69.2'
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6.0.2
       with:
         persist-credentials: false
     - name: Install Trivy
