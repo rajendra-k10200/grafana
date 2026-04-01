@@ -68,7 +68,7 @@ jobs:
         with:
           cache-build: 'false'
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@b002b6ecfcabe6ac0e2c6cba1bcc779eb34ac51f # v9
+        uses: golangci/golangci-lint-action@2d7e7b678591ee3321638e5c5621ca689628daa4 # v9
         with:
           version: v2.9.0
           args: |
